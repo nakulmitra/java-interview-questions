@@ -157,7 +157,7 @@ System.out.println(composed.apply(5)); // Output: 13
 
 ### Can you return a `Function` from a method?
 
-Yes. Since functions are objects in Java 8, you can return them:
+Yes. Since functions are objects in Java 8, we can return them:
 
 ```java
 public Function<String, String> getUppercaseFunction() {
@@ -167,7 +167,7 @@ public Function<String, String> getUppercaseFunction() {
 
 ### Is `Function<T, R>` serializable?
 
-No, it is **not serializable** by default. You can make it serializable by combining with the `Serializable` interface explicitly.
+No, it is **not serializable** by default. We can make it serializable by combining with the `Serializable` interface explicitly.
 
 ## Java `Supplier<T>`
 
@@ -237,7 +237,7 @@ This method evaluates a condition (predicate) on the given argument and returns 
 
 ### How do you use `Predicate` with Java Streams?
 
-You typically use it with the `filter()` method:
+We typically use it with the `filter()` method:
 
 ```java
 List<String> names = List.of("Aman", "Harsh", "Anil");
@@ -278,7 +278,7 @@ System.out.println(isOdd.test(3)); // true
 
 ### Can you pass a `Predicate` to a method?
 
-Yes. Since it's a functional interface, you can pass it as a lambda or method reference.
+Yes. Since it's a functional interface, we can pass it as a lambda or method reference.
 
 ```java
 public static void filterNumbers(List<Integer> numbers, Predicate<Integer> condition) {
@@ -310,7 +310,7 @@ List<String> filtered = names.stream()
 
 ### Is `Predicate` serializable?
 
-No, `Predicate` is **not serializable** by default. If you need serialization, you need to implement a custom `Predicate` that extends both `Predicate` and `Serializable`.
+No, `Predicate` is **not serializable** by default. If we need serialization, we need to implement a custom `Predicate` that extends both `Predicate` and `Serializable`.
 
 ### How would you write a custom reusable predicate?
 
@@ -390,7 +390,7 @@ Note: Use with caution due to thread-safety and ordering concerns.
 
 ### Can Stream be reused?
 
-No. Once a terminal operation is called, the stream is **consumed** and cannot be reused. You must create a new stream.
+No. Once a terminal operation is called, the stream is **consumed** and cannot be reused. We must create a new stream.
 
 ### How do you count the number of strings in a list that start with a specific letter (e.g., "A")?
 
@@ -691,8 +691,8 @@ Yes, it is **completely valid** to use `try` with `finally` without a `catch` bl
 
 This is useful when:
 
-* You want to **ensure resource cleanup**, regardless of whether an exception occurs or not.
-* You're handling exceptions elsewhere (e.g., with `throws`) but still want to release resources.
+* We want to **ensure resource cleanup**, regardless of whether an exception occurs or not.
+* We're handling exceptions elsewhere (e.g., with `throws`) but still want to release resources.
 
 **Example:**
 
@@ -887,7 +887,7 @@ public class Singleton {
 
 ### When to use Strategy Pattern?
 
-When you want to define a family of algorithms, encapsulate each one, and make them interchangeable. Used for decoupling algorithm from the object using it.
+When we want to define a family of algorithms, encapsulate each one, and make them interchangeable. Used for decoupling algorithm from the object using it.
 
 ### What is the difference between Factory and Abstract Factory Pattern?
 
