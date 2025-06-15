@@ -114,6 +114,238 @@ A container object that may or may not contain a non-null value.
 Used to avoid `NullPointerException`.  
 Example: `Optional.of(value)`, `Optional.empty()`, `Optional.orElse()`
 
+## Java `Function<T, R>`
+
+### What is `Function<T, R>` in Java?
+
+`Function<T, R>` is a **functional interface** in the `java.util.function` package. It represents a function that takes an input of type `T` and returns a result of type `R`.
+
+### What is the method signature of `Function<T, R>`?
+
+```java
+R apply(T t);
+```
+
+### Give an example usage of `Function`.
+
+```java
+Function<String, Integer> strLength = s -> s.length();
+System.out.println(strLength.apply("Java")); // Output: 4
+```
+
+### How do you compose two `Function`s?
+
+Using the default methods:
+
+* `andThen()`: Applies one function and then another.
+* `compose()`: Applies one function **before** another.
+
+```java
+Function<Integer, Integer> multiplyBy2 = x -> x * 2;
+Function<Integer, Integer> add3 = x -> x + 3;
+
+Function<Integer, Integer> composed = multiplyBy2.andThen(add3);
+System.out.println(composed.apply(5)); // Output: 13
+```
+
+### What is the difference between `compose()` and `andThen()`?
+
+| Method      | Order of Execution                                     |
+| ----------- | ------------------------------------------------------ |
+| `compose()` | Applies the **given** function first, then current     |
+| `andThen()` | Applies the **current** function first, then the given |
+
+### Can you return a `Function` from a method?
+
+Yes. Since functions are objects in Java 8, you can return them:
+
+```java
+public Function<String, String> getUppercaseFunction() {
+    return str -> str.toUpperCase();
+}
+```
+
+### Is `Function<T, R>` serializable?
+
+No, it is **not serializable** by default. You can make it serializable by combining with the `Serializable` interface explicitly.
+
+## Java `Supplier<T>`
+
+### What is a `Supplier<T>` in Java?
+
+A `Supplier<T>` is a **functional interface** that represents a supplier of results. It takes **no input** and **returns a value** of type `T`.
+
+### What is the method signature of `Supplier`?
+
+```java
+T get();
+```
+
+### Give an example usage of `Supplier`.
+
+```java
+Supplier<String> currentTime = () -> LocalTime.now().toString();
+System.out.println(currentTime.get());
+```
+
+### What are typical use cases of `Supplier`?
+
+* Lazy initialization
+* Generating random values
+* Supplying test data
+* Delayed computation in APIs (e.g., `Optional.orElseGet(Supplier)`)
+
+### How is `Supplier` used with `Optional`?
+
+```java
+String value = Optional.ofNullable(null)
+    .orElseGet(() -> "Default");
+
+System.out.println(value); // Output: Default
+```
+
+### Can a `Supplier` return different values each time?
+
+Yes. A `Supplier` can produce a new result every time `get()` is called.
+
+```java
+Supplier<Integer> randomSupplier = () -> new Random().nextInt(100);
+System.out.println(randomSupplier.get()); // e.g., 42
+System.out.println(randomSupplier.get()); // e.g., 87
+```
+
+### What is the difference between `Supplier<T>` and `Function<Void, T>`?
+
+Both represent functions that return a value, but:
+
+* `Supplier<T>` is **specifically designed** for no-arg producers.
+* `Function<Void, T>` is syntactically awkward and not idiomatic in Java 8+.
+
+## Java Predicate
+
+### What is a `Predicate` in Java?
+
+A `Predicate<T>` is a **functional interface** introduced in Java 8 (in `java.util.function` package) that takes an input of type `T` and returns a `boolean` result. It's commonly used for filtering, matching, and testing conditions in a **functional style**.
+
+### What is the method signature of the `Predicate` interface?
+
+```java
+boolean test(T t);
+```
+
+This method evaluates a condition (predicate) on the given argument and returns `true` or `false`.
+
+### How do you use `Predicate` with Java Streams?
+
+You typically use it with the `filter()` method:
+
+```java
+List<String> names = List.of("Aman", "Harsh", "Anil");
+Predicate<String> startsWithA = name -> name.startsWith("A");
+
+List<String> filtered = names.stream()
+    .filter(startsWithA)
+    .collect(Collectors.toList());
+```
+
+**Output:** `[Aman, Anil]`
+
+### Can you combine two predicates? How?
+
+Yes. The `Predicate` interface provides **default methods**:
+
+* `and()`
+* `or()`
+* `negate()`
+
+```java
+Predicate<String> startsWithA = s -> s.startsWith("A");
+Predicate<String> endsWithE = s -> s.endsWith("e");
+
+Predicate<String> startsAndEnds = startsWithA.and(endsWithE);
+```
+
+### What does the `negate()` method do in a Predicate?
+
+It returns a new predicate that represents the **logical negation** of the current predicate.
+
+```java
+Predicate<Integer> isEven = x -> x % 2 == 0;
+Predicate<Integer> isOdd = isEven.negate();
+
+System.out.println(isOdd.test(3)); // true
+```
+
+### Can you pass a `Predicate` to a method?
+
+Yes. Since it's a functional interface, you can pass it as a lambda or method reference.
+
+```java
+public static void filterNumbers(List<Integer> numbers, Predicate<Integer> condition) {
+    numbers.stream().filter(condition).forEach(System.out::println);
+}
+
+filterNumbers(List.of(1, 2, 3, 4), n -> n % 2 == 0); // prints 2 and 4
+```
+
+### How is `Predicate<T>` different from `Function<T, Boolean>`?
+
+Both return a `Boolean`, but:
+
+* `Predicate<T>` is **specifically designed for boolean-valued conditions** and provides extra logical-composition methods (`and`, `or`, `negate`).
+* `Function<T, Boolean>` is more general and does **not provide** logical composition out-of-the-box.
+
+### Can you chain multiple `Predicate`s in a single stream?
+
+Yes. Example:
+
+```java
+Predicate<String> startsWithA = s -> s.startsWith("A");
+Predicate<String> lengthIs5 = s -> s.length() == 5;
+
+List<String> filtered = names.stream()
+    .filter(startsWithA.and(lengthIs5))
+    .collect(Collectors.toList());
+```
+
+### Is `Predicate` serializable?
+
+No, `Predicate` is **not serializable** by default. If you need serialization, you need to implement a custom `Predicate` that extends both `Predicate` and `Serializable`.
+
+### How would you write a custom reusable predicate?
+
+```java
+public class MyPredicates {
+    public static Predicate<String> isNullOrEmpty() {
+        return s -> s == null || s.isEmpty();
+    }
+}
+```
+
+Usage:
+
+```java
+Predicate<String> check = MyPredicates.isNullOrEmpty();
+```
+
+### Predicate Method List
+
+| Method            | Description                    |
+| ----------------- | ------------------------------ |
+| `test(T t)`       | Evaluates the predicate        |
+| `and(Predicate)`  | Logical AND of two predicates  |
+| `or(Predicate)`   | Logical OR of two predicates   |
+| `negate()`        | Logical NOT of the predicate   |
+| `isEqual(Object)` | Static method to test equality |
+
+### Summary Table
+
+| Interface       | Input | Output  | Method    | Use Case                        |
+| --------------- | ----- | ------- | --------- | ------------------------------- |
+| `Predicate<T>`  | T     | boolean | `test()`  | Filtering, matching             |
+| `Function<T,R>` | T     | R       | `apply()` | Transformation                  |
+| `Supplier<T>`   | -     | T       | `get()`   | Value supplier, lazy evaluation |
+
 ## Java 8 Stream API
 
 ### What are Streams in Java?
@@ -159,6 +391,267 @@ Note: Use with caution due to thread-safety and ordering concerns.
 ### Can Stream be reused?
 
 No. Once a terminal operation is called, the stream is **consumed** and cannot be reused. You must create a new stream.
+
+### How do you count the number of strings in a list that start with a specific letter (e.g., "A")?
+
+```java
+List<String> names = List.of("Aman", "Bob", "Adam", "Ankit", "Brian");
+
+long count = names.stream()
+                  .filter(name -> name.startsWith("A"))
+                  .count();
+
+System.out.println(count); // Output: 3
+```
+
+### How do you find the maximum number in a list using Stream?
+
+```java
+List<Integer> numbers = List.of(10, 25, 3, 47, 15);
+
+int max = numbers.stream()
+                 .max(Integer::compare)
+                 .orElseThrow();
+
+System.out.println(max); // Output: 47
+```
+
+### How do you convert a list of strings to uppercase using Stream API?
+
+```java
+List<String> names = List.of("Akasht", "doe", "Aman");
+
+List<String> upper = names.stream()
+                          .map(String::toUpperCase)
+                          .collect(Collectors.toList());
+
+System.out.println(upper); // [Akasht, DOE, Aman]
+```
+
+### How do you remove duplicates from a list using Stream?
+
+```java
+List<Integer> numbers = List.of(1, 2, 2, 3, 4, 4, 5);
+
+List<Integer> unique = numbers.stream()
+                              .distinct()
+                              .collect(Collectors.toList());
+
+System.out.println(unique); // [1, 2, 3, 4, 5]
+```
+
+### How to group a list of strings by their first character?
+
+```java
+List<String> names = List.of("apple", "banana", "apricot", "blueberry");
+
+Map<Character, List<String>> grouped = names.stream()
+    .collect(Collectors.groupingBy(s -> s.charAt(0)));
+
+System.out.println(grouped);
+// Output: {a=[apple, apricot], b=[banana, blueberry]}
+```
+
+### How do you join a list of strings with commas using Stream API?
+
+```java
+List<String> words = List.of("Java", "Python", "Go");
+
+String result = words.stream()
+                     .collect(Collectors.joining(", "));
+
+System.out.println(result); // Output: Java, Python, Go
+```
+
+### How do you calculate the sum of all even numbers in a list?
+
+```java
+List<Integer> numbers = List.of(1, 2, 3, 4, 5, 6);
+
+int sum = numbers.stream()
+                 .filter(n -> n % 2 == 0)
+                 .mapToInt(Integer::intValue)
+                 .sum();
+
+System.out.println(sum); // Output: 12
+```
+
+### How do you sort a list of strings in reverse alphabetical order?
+
+```java
+List<String> names = List.of("Apple", "Mango", "Banana");
+
+List<String> sorted = names.stream()
+                           .sorted(Comparator.reverseOrder())
+                           .collect(Collectors.toList());
+
+System.out.println(sorted); // [Mango, Banana, Apple]
+```
+
+### How do you filter a list of objects based on a field?
+
+```java
+class Employee {
+    String name;
+    int salary;
+
+    Employee(String name, int salary) {
+        this.name = name;
+        this.salary = salary;
+    }
+}
+
+List<Employee> employees = List.of(
+    new Employee("Akasht", 4000),
+    new Employee("Akash", 6000),
+    new Employee("Mark", 7000)
+);
+
+List<Employee> highEarners = employees.stream()
+    .filter(e -> e.salary > 5000)
+    .collect(Collectors.toList());
+```
+
+### How do you count the frequency of elements in a list?
+
+```java
+List<String> items = List.of("apple", "banana", "apple", "orange", "banana", "apple");
+
+Map<String, Long> freq = items.stream()
+    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+
+System.out.println(freq);
+// Output: {orange=1, banana=2, apple=3}
+```
+
+### How do you partition a list into two based on a condition?
+
+```java
+List<Integer> numbers = List.of(1, 2, 3, 4, 5, 6);
+
+Map<Boolean, List<Integer>> partitioned = numbers.stream()
+    .collect(Collectors.partitioningBy(n -> n % 2 == 0));
+
+System.out.println(partitioned);
+// Output: {false=[1, 3, 5], true=[2, 4, 6]}
+```
+
+### Count the occurrence of elements using Stream API and output in sorted order of the key
+
+```java
+List<String> items = List.of("apple", "banana", "apple", "orange", "banana", "apple");
+
+Map<String, Long> result = items.stream()
+    .collect(Collectors.groupingBy(Function.identity(), TreeMap::new, Collectors.counting()));
+
+System.out.println(result);
+// Output: {apple=3, banana=2, orange=1}
+```
+
+### Find the first non-repeating character in a string using Stream API
+
+```java
+String input = "aabbcdeff";
+
+Optional<Character> firstNonRepeating = input.chars()
+    .mapToObj(c -> (char) c)
+    .collect(Collectors.groupingBy(Function.identity(), LinkedHashMap::new, Collectors.counting()))
+    .entrySet().stream()
+    .filter(e -> e.getValue() == 1)
+    .map(Map.Entry::getKey)
+    .findFirst();
+
+System.out.println(firstNonRepeating.orElse(null)); // Output: c
+```
+
+### Flatten a list of lists using Stream API
+
+```java
+List<List<String>> nested = List.of(
+    List.of("a", "b"),
+    List.of("c", "d"),
+    List.of("e")
+);
+
+List<String> flatList = nested.stream()
+    .flatMap(List::stream)
+    .collect(Collectors.toList());
+
+System.out.println(flatList); // Output: [a, b, c, d, e]
+```
+
+### Get the top 3 highest numbers from a list
+
+```java
+List<Integer> numbers = List.of(5, 3, 9, 1, 4, 7);
+
+List<Integer> top3 = numbers.stream()
+    .sorted(Comparator.reverseOrder())
+    .limit(3)
+    .collect(Collectors.toList());
+
+System.out.println(top3); // Output: [9, 7, 5]
+```
+
+### Sort a map by its values in descending order using Stream API
+
+```java
+Map<String, Integer> map = Map.of("apple", 3, "banana", 2, "orange", 5);
+
+LinkedHashMap<String, Integer> sortedByValue = map.entrySet().stream()
+    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+    .collect(Collectors.toMap(
+        Map.Entry::getKey,
+        Map.Entry::getValue,
+        (e1, e2) -> e1,
+        LinkedHashMap::new
+    ));
+
+System.out.println(sortedByValue);
+// Output: {orange=5, apple=3, banana=2}
+```
+
+### Group a list of employees by department
+
+```java
+class Employee {
+    String name;
+    String dept;
+    Employee(String name, String dept) {
+        this.name = name;
+        this.dept = dept;
+    }
+}
+
+List<Employee> employees = List.of(
+    new Employee("Akasht", "IT"),
+    new Employee("Akash", "HR"),
+    new Employee("Aman", "IT")
+);
+
+Map<String, List<Employee>> grouped = employees.stream()
+    .collect(Collectors.groupingBy(emp -> emp.dept));
+
+grouped.forEach((k, v) -> System.out.println(k + " => " + v.stream().map(e -> e.name).toList()));
+// Output:
+// IT => [Akasht, Aman]
+// HR => [Akash]
+```
+
+### Find duplicate elements in a list using Streams
+
+```java
+List<String> items = List.of("apple", "banana", "apple", "orange", "banana", "apple");
+
+Set<String> duplicates = items.stream()
+    .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+    .entrySet().stream()
+    .filter(e -> e.getValue() > 1)
+    .map(Map.Entry::getKey)
+    .collect(Collectors.toSet());
+
+System.out.println(duplicates); // Output: [apple, banana]
+```
 
 ## Exceptions in Java
 
