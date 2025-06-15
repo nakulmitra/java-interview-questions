@@ -25,6 +25,55 @@ For example, two `String` objects with the same value will return `true` for `eq
 
 ## Collections Framework
 
+### What is the difference between `ArrayList` and `LinkedList`?
+
+| Feature         | ArrayList             | LinkedList                   |
+| --------------- | --------------------- | ---------------------------- |
+| Data Structure  | Dynamic Array         | Doubly Linked List           |
+| Access Time     | Fast (O(1)) for index | Slow (O(n)) for index        |
+| Insert/Delete   | Slow in middle (O(n)) | Fast in middle (O(1) if ref) |
+| Memory Overhead | Less                  | More (due to node pointers)  |
+
+### Difference Between `HashMap` and `HashSet`
+
+| Feature                  | `HashMap<K, V>`                                                         | `HashSet<E>`                                                |
+| ------------------------ | ----------------------------------------------------------------------- | ----------------------------------------------------------- |
+| **Purpose**              | Stores **key-value** pairs                                              | Stores **unique elements**                                  |
+| **Implements**           | `Map` interface                                                         | `Set` interface                                             |
+| **Underlying Structure** | Backed by a `HashTable` (array of buckets)                              | Internally uses a `HashMap`                                 |
+| **Data Stored**          | Keys and Values                                                         | Only keys (stored as map keys with a dummy value)           |
+| **Duplicates**           | Keys must be unique, values can duplicate                               | No duplicate elements allowed                               |
+| **Null Handling**        | Allows 1 `null` key and multiple `null` values                          | Allows 1 `null` element                                     |
+| **Example Usage**        | `HashMap<String, Integer> map = new HashMap<>();`<br>`map.put("A", 1);` | `HashSet<String> set = new HashSet<>();`<br>`set.add("A");` |
+| **Performance**          | O(1) average for put/get/remove                                         | O(1) average for add/contains/remove                        |
+| **Use Case**             | Fast lookup via keys, key-value storage                                 | Unique collection, set operations                           |
+
+### What is the difference between `HashSet` and `TreeSet`?
+
+| Feature       | HashSet                      | TreeSet                              |
+| ------------- | ---------------------------- | ------------------------------------ |
+| Ordering      | No ordering                  | Elements sorted (natural/comparator) |
+| Null Elements | Allows one null              | Does not allow null (throws NPE)     |
+| Performance   | Faster (O(1) for add/search) | Slower (O(log n))                    |
+
+### What is the difference between `HashMap` and `Hashtable`?
+
+| Feature          | HashMap                          | Hashtable                  |
+| ---------------- | -------------------------------- | -------------------------- |
+| Thread Safety    | Not thread-safe                  | Thread-safe (synchronized) |
+| Performance      | Better in single-threaded        | Slower due to sync         |
+| Null Keys/Values | 1 null key, multiple null values | No null key or value       |
+
+### What is the difference between `Iterator` and `ListIterator`?
+
+* `Iterator`: Works for all collections; only forward traversal; read-remove only.
+* `ListIterator`: Only for `List` types; supports **bidirectional traversal**, element modification, and index access.
+
+### What is the fail-fast vs fail-safe iterator?
+
+* **Fail-fast**: Throws `ConcurrentModificationException` if collection is modified during iteration (e.g., `ArrayList`, `HashMap`).
+* **Fail-safe**: Works on a cloned copy of the collection, does not throw exception (e.g., `CopyOnWriteArrayList`, `ConcurrentHashMap`).
+
 ### What is the difference between `HashMap`, `TreeMap`, and `LinkedHashMap`?
 
 - `HashMap`: Unordered, allows one null key  
@@ -65,6 +114,52 @@ A container object that may or may not contain a non-null value.
 Used to avoid `NullPointerException`.  
 Example: `Optional.of(value)`, `Optional.empty()`, `Optional.orElse()`
 
+## Java 8 Stream API
+
+### What are Streams in Java?
+
+Streams represent a **sequence of elements** supporting **sequential and parallel** operations using **functional-style programming**. They don't store data but operate on source collections.
+
+### Difference between `map()` and `flatMap()`?
+
+* `map()`: Transforms each element.
+* `flatMap()`: Flattens nested structures and then applies transformation.
+
+**Example:**
+
+```java
+// map example
+List<String> names = list.stream().map(user -> user.getName()).collect(Collectors.toList());
+
+// flatMap example
+List<String> allWords = sentences.stream()
+    .flatMap(sentence -> Arrays.stream(sentence.split(" ")))
+    .collect(Collectors.toList());
+```
+
+### What is lazy evaluation in Stream API?
+
+Streams are lazy - intermediate operations like `map()` or `filter()` **don't execute** until a **terminal operation** like `collect()` or `forEach()` is invoked. This improves performance by avoiding unnecessary computation.
+
+### What is the difference between intermediate and terminal operations?
+
+* **Intermediate**: Return another stream (e.g., `filter()`, `map()`, `sorted()`)
+* **Terminal**: Triggers computation (e.g., `collect()`, `forEach()`, `count()`)
+
+### How to perform parallel processing with streams?
+
+Use `parallelStream()` instead of `stream()`.
+
+```java
+list.parallelStream().forEach(item -> process(item));
+```
+
+Note: Use with caution due to thread-safety and ordering concerns.
+
+### Can Stream be reused?
+
+No. Once a terminal operation is called, the stream is **consumed** and cannot be reused. You must create a new stream.
+
 ## Exceptions in Java
 
 ### What is the difference between checked and unchecked exceptions?
@@ -96,6 +191,31 @@ Yes, **unless**:
 * The program crashes
 
 Even if an exception is thrown or a return statement exists in the `try` or `catch`, `finally` will still execute.
+
+### Is it valid to use only `try` and `finally` without a `catch` block?
+
+Yes, it is **completely valid** to use `try` with `finally` without a `catch` block.
+
+This is useful when:
+
+* You want to **ensure resource cleanup**, regardless of whether an exception occurs or not.
+* You're handling exceptions elsewhere (e.g., with `throws`) but still want to release resources.
+
+**Example:**
+
+```java
+public void writeToFile(String filePath) throws IOException {
+    FileWriter writer = null;
+    try {
+        writer = new FileWriter(filePath);
+        writer.write("Hello, World!");
+    } finally {
+        if (writer != null) {
+            writer.close(); // Ensures resource is released
+        }
+    }
+}
+```
 
 ### What happens when both `catch` and `finally` have return statements?
 The `finally` block's return will override any return from `try` or `catch`.
