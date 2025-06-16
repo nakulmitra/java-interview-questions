@@ -19,9 +19,9 @@ For example, two `String` objects with the same value will return `true` for `eq
 
 ### What is the purpose of the `final` keyword in Java?
 
-- `final` variable: value cannot be changed  
-- `final` method: cannot be overridden  
-- `final` class: cannot be extended
+- `final variable:` value cannot be changed  
+- `final method:` cannot be overridden  
+- `final class:` cannot be extended
 
 ## Collections Framework
 
