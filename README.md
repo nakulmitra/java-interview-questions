@@ -23,6 +23,71 @@ For example, two `String` objects with the same value will return `true` for `eq
 - `final method:` cannot be overridden  
 - `final class:` cannot be extended
 
+## Method Overloading vs Overriding
+
+### What is the difference between method overloading and method overriding?
+
+| Feature          | Overloading                            | Overriding                              |
+| ---------------- | -------------------------------------- | --------------------------------------- |
+| Definition       | Same method name, different parameters | Same method name/signature, in subclass |
+| Class Scope      | Same class or subclass                 | Subclass only                           |
+| Return Type      | Can be different                       | Must be same (or covariant)             |
+| Polymorphism     | Compile-time                           | Runtime                                 |
+| Access Modifier  | No restriction                         | Can't reduce visibility                 |
+| `static` Methods | Can be overloaded                      | Cannot be overridden                    |
+
+### Can we overload a method by changing only the return type?
+
+**No**. Return type alone is not enough to distinguish between overloaded methods.
+
+```java
+// Compilation error
+int sum(int a, int b) { return a + b; }
+double sum(int a, int b) { return a + b; }
+```
+
+### Can you override a private or static method?
+
+* **Private methods** cannot be overridden - they are not inherited.
+* **Static methods** are **hidden**, not overridden. This is called **method hiding**.
+
+### What is method hiding in Java?
+
+When a static method in subclass has the same signature as a static method in the superclass, it **hides** the superclass method - it doesn't override it.
+
+```java
+class A {
+    static void show() { System.out.println("A"); }
+}
+
+class B extends A {
+    static void show() { System.out.println("B"); }
+}
+
+A obj = new B();
+obj.show(); // Output: A
+```
+
+### Can we override a method with a more restrictive access modifier?
+
+**No**. You can't reduce the visibility of the overridden method.
+For example, a `public` method in the superclass **cannot** be overridden with a `protected` or `private` method in subclass.
+
+### What is covariant return type?
+
+If a method in a subclass overrides a method in the superclass, it can return a **subtype** of the return type declared in the superclass.
+
+```java
+class A {
+    Object getValue() { return null; }
+}
+
+class B extends A {
+    @Override
+    String getValue() { return "hello"; }
+}
+```
+
 ## Collections Framework
 
 ### What is the difference between `ArrayList` and `LinkedList`?
@@ -895,6 +960,52 @@ When we want to define a family of algorithms, encapsulate each one, and make th
 * Abstract Factory: Creates families of related or dependent objects without specifying their concrete classes.
 
 ## Miscellaneous
+
+### What is varargs in Java? When would you use it?
+
+`varargs` allows a method to accept **zero or more arguments** of a specified type.
+Syntax:
+
+```java
+public void printNames(String... names) {
+    for (String name : names) {
+        System.out.println(name);
+    }
+}
+```
+
+You use `varargs` when you don't know in advance how many parameters a method will receive.
+
+### Can you have multiple varargs in a method signature?
+
+**No**, a method can have **only one varargs parameter**, and it **must be the last parameter** in the method signature.
+
+```java
+// Invalid: varargs not last
+public void test(String... names, int... values) { } // Compilation Error
+```
+
+### How does varargs work internally?
+
+Varargs is internally treated as an **array**. For example:
+
+```java
+public void show(String... names) { }
+```
+
+is interpreted by the compiler as:
+
+```java
+public void show(String[] names) { }
+```
+
+### What happens when you pass `null` to a varargs method?
+
+If you pass `null`, the method receives a `null` reference, not an empty array — leading to `NullPointerException` if accessed.
+
+```java
+show(null); // show(String... names) -> names is null
+```
 
 ### What is serialization? What is the role of `serialVersionUID`?
 
