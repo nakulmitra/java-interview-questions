@@ -23,6 +23,122 @@ For example, two `String` objects with the same value will return `true` for `eq
 - `final method:` cannot be overridden  
 - `final class:` cannot be extended
 
+### What are wrapper classes in Java?
+
+Wrapper classes are object representations of primitive data types.
+Each primitive has a corresponding wrapper:
+
+| Primitive | Wrapper Class |
+| --------- | ------------- |
+| `byte`    | `Byte`        |
+| `short`   | `Short`       |
+| `int`     | `Integer`     |
+| `long`    | `Long`        |
+| `float`   | `Float`       |
+| `double`  | `Double`      |
+| `char`    | `Character`   |
+| `boolean` | `Boolean`     |
+
+They are used when objects are required instead of primitives - for example, in collections (`List<Integer>`, not `List<int>`).
+
+### What is autoboxing and unboxing?
+
+* **Autoboxing**: Automatic conversion of primitive to its corresponding wrapper object.
+  Example:
+
+  ```java
+  Integer i = 10; // int → Integer
+  ```
+
+* **Unboxing**: Automatic conversion of wrapper to its primitive type.
+  Example:
+
+  ```java
+  int j = new Integer(20); // Integer -> int
+  ```
+
+Introduced in **Java 5** to simplify conversions.
+
+### Why are wrapper objects immutable?
+
+Wrapper classes are **immutable** because:
+
+* Once created, their value cannot be changed.
+* They are often used in **caching** and **multithreaded** environments.
+* Ensures **safety** when used as keys in `Map`, elements in `Set`.
+
+### What is the difference between `==` and `.equals()` with wrapper classes?
+
+
+* `==` checks **reference equality**
+* `.equals()` checks **value equality**
+
+Example:
+
+```java
+Integer a = 100;
+Integer b = 100;
+System.out.println(a == b);       // true (within cache range)
+System.out.println(a.equals(b));  // true
+
+Integer x = 128;
+Integer y = 128;
+System.out.println(x == y);       // false (outside cache range)
+System.out.println(x.equals(y));  // true
+```
+
+### What is Integer caching in Java?
+
+Java **caches Integer objects** in the range **-128 to 127**.
+When autoboxing values in this range, the **same object** is returned.
+
+This applies to `Byte`, `Short`, `Integer`, `Long`, and `Character`.
+
+### Can we store `null` in a wrapper object? What happens on unboxing?
+
+Yes, wrapper objects can be `null`, but unboxing a `null` will throw a **`NullPointerException`**.
+
+Example:
+
+```java
+Integer i = null;
+int x = i; //NullPointerException at runtime
+```
+
+### How does autoboxing affect performance?
+
+
+* Frequent boxing/unboxing can lead to **increased memory usage** and **performance overhead**.
+* Especially problematic in **loops**, **streams**, or **high-performance applications**.
+* Prefer primitives where possible in **hot paths**.
+
+### Can wrapper classes be extended?
+
+**No**. All wrapper classes in Java (`Integer`, `Double`, etc.) are **`final`**, so they **cannot be subclassed**.
+
+### What will be the output of the following code?
+
+```java
+Integer a = 128;
+Integer b = 128;
+System.out.println(a == b);
+```
+
+Output: `false`
+Because 128 is **outside the cache range** (-128 to 127), two different objects are created.
+
+### Is autoboxing applicable to method arguments?
+
+**Yes**. Java will automatically box/unbox arguments when calling methods.
+
+```java
+public void print(Integer i) {
+    System.out.println(i);
+}
+
+print(5); // int is autoboxed to Integer
+```
+
 ## Method Overloading vs Overriding
 
 ### What is the difference between method overloading and method overriding?
@@ -46,7 +162,7 @@ int sum(int a, int b) { return a + b; }
 double sum(int a, int b) { return a + b; }
 ```
 
-### Can you override a private or static method?
+### Can we override a private or static method?
 
 * **Private methods** cannot be overridden - they are not inherited.
 * **Static methods** are **hidden**, not overridden. This is called **method hiding**.
@@ -70,7 +186,7 @@ obj.show(); // Output: A
 
 ### Can we override a method with a more restrictive access modifier?
 
-**No**. You can't reduce the visibility of the overridden method.
+**No**. We can't reduce the visibility of the overridden method.
 For example, a `public` method in the superclass **cannot** be overridden with a `protected` or `private` method in subclass.
 
 ### What is covariant return type?
@@ -198,7 +314,7 @@ Function<String, Integer> strLength = s -> s.length();
 System.out.println(strLength.apply("Java")); // Output: 4
 ```
 
-### How do you compose two `Function`s?
+### How do we compose two `Function`s?
 
 Using the default methods:
 
@@ -220,7 +336,7 @@ System.out.println(composed.apply(5)); // Output: 13
 | `compose()` | Applies the **given** function first, then current     |
 | `andThen()` | Applies the **current** function first, then the given |
 
-### Can you return a `Function` from a method?
+### Can we return a `Function` from a method?
 
 Yes. Since functions are objects in Java 8, we can return them:
 
@@ -300,7 +416,7 @@ boolean test(T t);
 
 This method evaluates a condition (predicate) on the given argument and returns `true` or `false`.
 
-### How do you use `Predicate` with Java Streams?
+### How do we use `Predicate` with Java Streams?
 
 We typically use it with the `filter()` method:
 
@@ -315,7 +431,7 @@ List<String> filtered = names.stream()
 
 **Output:** `[Aman, Anil]`
 
-### Can you combine two predicates? How?
+### Can we combine two predicates? How?
 
 Yes. The `Predicate` interface provides **default methods**:
 
@@ -341,7 +457,7 @@ Predicate<Integer> isOdd = isEven.negate();
 System.out.println(isOdd.test(3)); // true
 ```
 
-### Can you pass a `Predicate` to a method?
+### Can we pass a `Predicate` to a method?
 
 Yes. Since it's a functional interface, we can pass it as a lambda or method reference.
 
@@ -360,7 +476,7 @@ Both return a `Boolean`, but:
 * `Predicate<T>` is **specifically designed for boolean-valued conditions** and provides extra logical-composition methods (`and`, `or`, `negate`).
 * `Function<T, Boolean>` is more general and does **not provide** logical composition out-of-the-box.
 
-### Can you chain multiple `Predicate`s in a single stream?
+### Can we chain multiple `Predicate`s in a single stream?
 
 Yes. Example:
 
