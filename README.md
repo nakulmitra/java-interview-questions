@@ -47,7 +47,7 @@ They are used when objects are required instead of primitives - for example, in 
   Example:
 
   ```java
-  Integer i = 10; // int → Integer
+  Integer i = 10; // int -> Integer
   ```
 
 * **Unboxing**: Automatic conversion of wrapper to its primitive type.
@@ -203,6 +203,160 @@ class B extends A {
     String getValue() { return "hello"; }
 }
 ```
+
+## Java Enums
+
+### What is an `enum` in Java?
+
+An `enum` (short for **enumeration**) is a special data type that enables a variable to be a set of predefined constants.
+
+```java
+enum Day {
+    MONDAY, TUESDAY, WEDNESDAY
+}
+```
+
+### What are the benefits of using `enum`?
+
+
+* Type-safe representation of constant values
+* Can have **fields**, **constructors**, **methods**
+* Prevents invalid values at compile time
+* Readable and maintainable
+
+### Can Java `enum` have fields and methods?
+
+Yes. Java enums can have:
+
+* Fields
+* Constructors
+* Methods (including abstract)
+* We can even **override** methods in each constant
+
+```java
+enum Status {
+    SUCCESS(200), ERROR(500);
+
+    private final int code;
+    Status(int code) { this.code = code; }
+    public int getCode() { return code; }
+}
+```
+
+### Can an `enum` implement an interface?
+
+Yes. Enums can implement interfaces but **cannot extend classes** (because `enum` implicitly extends `java.lang.Enum`).
+
+```java
+interface Printable {
+    void print();
+}
+
+enum Color implements Printable {
+    RED, GREEN, BLUE;
+
+    public void print() {
+        System.out.println(this.name());
+    }
+}
+```
+
+### Can we override a method for each enum constant?
+
+Yes. We can define different behavior per constant using **anonymous class body**:
+
+```java
+enum Operation {
+    ADD {
+        public int apply(int a, int b) { return a + b; }
+    },
+    MULTIPLY {
+        public int apply(int a, int b) { return a * b; }
+    };
+
+    public abstract int apply(int a, int b);
+}
+```
+
+### Can enums have constructors?
+
+Yes, but they are **always private** (implicitly). We can't call them directly.
+
+```java
+enum Priority {
+    HIGH(3), MEDIUM(2), LOW(1);
+
+    private int level;
+    Priority(int level) { this.level = level; }
+    public int getLevel() { return level; }
+}
+```
+
+### What is the difference between `==` and `.equals()` for enums?
+
+Both `==` and `.equals()` compare enum constants by reference — they are **singleton instances**.
+
+```java
+Priority p1 = Priority.HIGH;
+Priority p2 = Priority.HIGH;
+System.out.println(p1 == p2);        // true
+System.out.println(p1.equals(p2));   // true
+```
+
+### Can we use enums in switch statements?
+
+Yes. Enums are frequently used with `switch`:
+
+```java
+switch (day) {
+    case MONDAY: System.out.println("Start of week"); break;
+    case FRIDAY: System.out.println("Weekend ahead!"); break;
+}
+```
+
+### How do we get all values of an enum?
+
+Use the built-in static `values()` method:
+
+```java
+for (Day d : Day.values()) {
+    System.out.println(d);
+}
+```
+
+### Can enums be compared using `compareTo()`?
+
+Yes. Enums implement `Comparable` and are ordered by their **declaration position**:
+
+```java
+System.out.println(Day.MONDAY.compareTo(Day.WEDNESDAY)); // Output: -2
+```
+
+### Is `enum` thread-safe?
+
+Yes. Enum constants are implicitly **singleton** and **thread-safe** by design.
+
+### Can we use `enum` as a singleton?
+
+Yes. This is a best practice since enum singletons are:
+
+* **Serialization-safe**
+* **Reflection-safe**
+
+```java
+enum MySingleton {
+    INSTANCE;
+
+    public void doSomething() {
+        System.out.println("Singleton logic");
+    }
+}
+```
+
+### What's the base class of all enums?
+
+All enums implicitly extend **`java.lang.Enum<E extends Enum<E>>`**.
+This is why we can't extend another class.
 
 ## Collections Framework
 
