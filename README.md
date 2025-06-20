@@ -139,6 +139,118 @@ public void print(Integer i) {
 print(5); // int is autoboxed to Integer
 ```
 
+## Immutability in Java
+
+### What is an immutable class in Java?
+
+An **immutable class** is one whose **state cannot be changed after it is created**. Once an object is initialized, you **cannot modify** its fields.
+
+Examples:
+
+* `String`
+* `Integer`, `Boolean`, `BigDecimal`, `LocalDate`, etc.
+
+### What are the benefits of immutability?
+
+* **Thread safety** - no synchronization needed
+* **Predictable behavior** - ideal for caching and functional programming
+* **Safe in collections** - no risk of corruption or inconsistency
+* **Ease of testing** - no hidden state changes
+
+### How do you create an immutable class in Java?
+
+To create an immutable class:
+
+1. Declare the class as `final`
+2. Make all fields `private` and `final`
+3. No setters
+4. Initialize fields only via constructor
+5. Return **copies** of mutable objects (defensive copy)
+
+### Example: Immutable `Person` class
+
+```java
+public final class Person {
+    private final String name;
+    private final int age;
+    private final List<String> hobbies;
+
+    public Person(String name, int age, List<String> hobbies) {
+        this.name = name;
+        this.age = age;
+        // Defensive copy for mutable list
+        this.hobbies = new ArrayList<>(hobbies);
+    }
+
+    public String getName() { return name; }
+    public int getAge() { return age; }
+
+    public List<String> getHobbies() {
+        return new ArrayList<>(hobbies); // Return copy
+    }
+}
+```
+
+### Is `String` immutable in Java? Why?
+
+Yes, `String` is immutable because:
+
+* Its `char[]` value is marked `final`
+* It enables **string pool** optimizations
+* Prevents **security vulnerabilities** (e.g., in class loading, URLs)
+
+### Why is immutability useful in multithreaded applications?
+
+* Immutable objects are **inherently thread-safe**
+* No need for synchronization or locking
+* Prevents race conditions
+* Ideal for **shared configuration** and **DTOs** in concurrent systems
+
+### Can you have a class with some mutable and some immutable fields?
+
+You **can**, but such a class is **not fully immutable**.
+If one field can change, the object's state is considered mutable.
+If absolutely needed, expose only unmodifiable or defensive copies.
+
+### What is defensive copying?
+
+**Defensive copying** is the practice of **copying a mutable object** when setting or returning it, to prevent changes to the internal state.
+
+```java
+this.hobbies = new ArrayList<>(hobbies); // In constructor  
+return new ArrayList<>(this.hobbies);    // In getter
+```
+
+### Can we use `clone()` instead of defensive copying?
+
+You **can**, but it's not recommended unless:
+
+* The object implements `Cloneable` properly
+* Deep cloning is required
+
+Better alternatives: copy constructors, factory methods, or libraries like **Lombok**, **ModelMapper**.
+
+### Can final make an object immutable?
+
+**No.** `final` makes a **reference variable** unchangeable - not the object itself.
+
+```java
+final List<String> list = new ArrayList<>();
+list.add("Java"); // Allowed! List itself is mutable
+```
+
+To make an object immutable, the **class design** must prevent mutation.
+
+### How is immutability related to functional programming?
+
+Functional programming promotes:
+
+* Pure functions
+* No side effects
+* Stateless design
+
+Immutability aligns with this by **ensuring objects can't be changed**, supporting **referential transparency** and safe **concurrency**.
+
 ## Method Overloading vs Overriding
 
 ### What is the difference between method overloading and method overriding?
