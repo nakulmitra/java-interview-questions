@@ -1212,6 +1212,138 @@ public int hashCode() {
 }
 ```
 
+## Java Serialization
+
+### What is serialization in Java?
+
+Serialization is the process of converting an object into a **byte stream** so it can be:
+
+* Stored in a file or database
+* Sent over a network
+  Later, it can be reconstructed using **deserialization**.
+
+### Which interface must a class implement to support serialization?
+
+The class must implement the **`java.io.Serializable`** marker interface.
+
+```java
+public class User implements Serializable {
+    private String name;
+    private int age;
+}
+```
+
+It has **no methods** - it's a **marker interface**.
+
+### What is `serialVersionUID`?
+
+`serialVersionUID` is a **unique identifier** used during deserialization to verify that the sender and receiver of a serialized object have compatible class definitions.
+
+```java
+private static final long serialVersionUID = 1L;
+```
+
+If not declared, Java generates one at runtime - but this may change with class modifications, leading to `InvalidClassException`.
+
+### What happens if a class does not declare `serialVersionUID`?
+
+Java will generate one at runtime based on class structure.
+If the class changes (e.g., add/remove field), the generated ID may change, breaking compatibility during deserialization.
+
+Best practice: **Always declare it manually**.
+
+### What is the difference between `Serializable` and `Externalizable`?
+
+| Feature        | `Serializable`   | `Externalizable`                        |
+| -------------- | ---------------- | --------------------------------------- |
+| Interface Type | Marker interface | Has methods to implement                |
+| Custom Control | No               | Yes (`writeExternal`, `readExternal`)   |
+| Performance    | Slower           | Faster (if used correctly)              |
+
+### What is the role of the `transient` keyword?
+
+Fields marked with `transient` are **excluded from serialization**.
+
+```java
+transient String password;
+```
+
+Useful for:
+
+* Sensitive data
+* Temporary/cache fields
+* Objects that are not serializable
+
+### What is the default serialization mechanism?
+
+Java uses **reflection** to serialize object state (all non-transient, non-static fields). It includes:
+
+* Class name
+* Field values
+* Object graph (recursively)
+
+### What is `ObjectOutputStream` and `ObjectInputStream`?
+
+* `ObjectOutputStream`: Serializes objects to an output stream
+* `ObjectInputStream`: Deserializes objects from an input stream
+
+Example:
+
+```java
+ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream("data.ser"));
+out.writeObject(myObject);
+
+ObjectInputStream in = new ObjectInputStream(new FileInputStream("data.ser"));
+MyClass obj = (MyClass) in.readObject();
+```
+
+### What happens if a serialized object contains a reference to another object?
+
+If the referenced object is **also Serializable**, it will be serialized recursively.
+If not, `NotSerializableException` is thrown.
+
+### Can you serialize static fields?
+
+**No.** Static fields belong to the class, not the object instance, so they are not serialized.
+
+### Can a superclass be non-serializable while the subclass is serializable?
+
+**Yes**, but during deserialization, the non-serializable superclass must have a **no-arg constructor**, as it will be called to reinitialize its fields.
+
+### What is `readObject()` and `writeObject()`?
+
+Special private methods that can be added to control the default serialization logic:
+
+```java
+private void writeObject(ObjectOutputStream oos) throws IOException {
+    oos.defaultWriteObject();
+    // custom logic
+}
+
+private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
+    ois.defaultReadObject();
+    // custom logic
+}
+```
+
+### What are common exceptions in serialization?
+
+| Exception                  | Cause                                          |
+| -------------------------- | ---------------------------------------------- |
+| `NotSerializableException` | Class or one of its fields is not serializable |
+| `InvalidClassException`    | `serialVersionUID` mismatch                    |
+| `IOException`              | I/O failure during stream operations           |
+
+### How to make a singleton class serializable and preserve singleton property?
+
+Implement `readResolve()` method:
+
+```java
+protected Object readResolve() {
+    return getInstance(); // return the existing singleton instance
+}
+```
+
 ## Multithreading in Java
 
 ### What is the difference between `Runnable` and `Callable`?
