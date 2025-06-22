@@ -1419,6 +1419,185 @@ class User implements Serializable {
 * For **non-serializable** fields (e.g., `Thread`, `Socket`)
 * For **performance optimization** if the field can be reconstructed
 
+## Java Generics
+
+### What are Generics in Java?
+
+Generics allow classes, interfaces, and methods to operate on **typed parameters** - enabling **compile-time type safety** and eliminating the need for explicit typecasting.
+
+```java
+List<String> list = new ArrayList<>();
+```
+
+Without generics, this would require casting:
+
+```java
+List list = new ArrayList();
+String name = (String) list.get(0); //unsafe
+```
+
+### What are the benefits of using generics?
+
+* Compile-time type safety
+* Eliminate unnecessary casting
+* Reusability of code (generic algorithms)
+* Better readability and maintainability
+
+### What is type erasure in Java?
+
+Type erasure is the process by which **generic type information is removed at runtime**. This is done to ensure **backward compatibility** with older versions of Java.
+
+For example:
+
+```java
+List<String> list = new ArrayList<>();
+```
+
+At runtime, it's treated as:
+
+```java
+List list = new ArrayList(); //Raw type
+```
+
+**Implication:**
+
+* No method overloading based on generic types.
+* You cannot check `instanceof` with a generic type (`if (obj instanceof List<String>)`).
+
+### Can you overload a method using generic types?
+
+**No.** Due to **type erasure**, the following methods will cause a compilation error:
+
+```java
+public void process(List<String> list) { }
+public void process(List<Integer> list) { } //Not allowed
+```
+
+---
+
+### What are wildcards in generics?
+
+Wildcards (`?`) represent an **unknown type** in generics. Used to make methods **more flexible**.
+
+```java
+List<?> unknownList = new ArrayList<String>();
+```
+
+Wildcards are often used with `extends` (upper bound) or `super` (lower bound).
+
+### What is bounded wildcard (`extends`) in Java Generics?
+
+It restricts the unknown type to be a **subclass of a specific class** (upper bound).
+
+```java
+public void printList(List<? extends Number> list)
+```
+
+Allows: `List<Integer>`, `List<Double>`, etc.
+
+**Used when you only read values** (covariant behavior).
+
+### What is lower-bounded wildcard (`super`) in Java Generics?
+
+It restricts the unknown type to be a **superclass** of a specific type.
+
+```java
+public void addToList(List<? super Integer> list)
+```
+
+Allows: `List<Integer>`, `List<Number>`, `List<Object>`
+
+**Used when you want to write values into a structure** (contravariant behavior).
+
+### What is the PECS principle in Java Generics?
+
+**PECS** stands for:
+
+> **Producer Extends, Consumer Super**
+
+* Use `? extends T` when a structure **produces** T (for reading).
+* Use `? super T` when a structure **consumes** T (for writing).
+
+| Operation | Wildcard      | Example                  |
+| --------- | ------------- | ------------------------ |
+| Read      | `? extends T` | `List<? extends Number>` |
+| Write     | `? super T`   | `List<? super Integer>`  |
+
+### What is an unbounded wildcard in Java?
+
+`List<?>` is an unbounded wildcard, meaning it can refer to a list of **any type**.
+
+Useful for read-only access when type is not relevant.
+
+### Can you use primitive types with generics?
+
+No. Java generics work only with **reference types**, not primitives.
+
+You must use wrapper classes:
+
+```java
+List<int>     //Invalid
+List<Integer> //Valid
+```
+
+### Can you create arrays of generic types?
+
+No. Generic arrays are not allowed because of **type erasure**.
+
+```java
+List<String>[] arr = new List<String>[10]; //Compilation error
+```
+
+Alternative: use `List<?>[]` with care or collections instead.
+
+### What is the difference between `List<Object>` and `List<?>`?
+
+| Feature             | `List<Object>`            | `List<?>`                  |
+| ------------------- | ------------------------- | -------------------------- |
+| Accepts all types?  | Only objects explicitly | Any generic list         |
+| Can write elements? | Yes                     | No (only read or `null`) |
+
+### What are raw types in Java?
+
+Raw types are generic types **without type parameters**.
+E.g., `List list = new ArrayList();`
+
+Allowed for **backward compatibility**, but not type-safe - leads to runtime `ClassCastException`.
+
+### Can you make a generic class or method in Java?
+
+Yes.
+
+**Generic class:**
+
+```java
+class Box<T> {
+    private T value;
+    public void set(T value) { this.value = value; }
+    public T get() { return value; }
+}
+```
+
+**Generic method:**
+
+```java
+public <T> void print(T item) {
+    System.out.println(item);
+}
+```
+
+### How do you restrict a generic class to accept only certain types?
+
+Use bounded types:
+
+```java
+class Calculator<T extends Number> {
+    T value;
+}
+```
+
+Now `T` can only be `Integer`, `Double`, etc. - not `String`.
+
 ## JVM and Performance
 
 ### What are memory areas in JVM?
