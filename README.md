@@ -866,13 +866,13 @@ System.out.println(max); // Output: 47
 ### How do you convert a list of strings to uppercase using Stream API?
 
 ```java
-List<String> names = List.of("Akasht", "doe", "Aman");
+List<String> names = List.of("Akshay", "doe", "Aman");
 
 List<String> upper = names.stream()
                           .map(String::toUpperCase)
                           .collect(Collectors.toList());
 
-System.out.println(upper); // [Akasht, DOE, Aman]
+System.out.println(upper); // [Akshay, DOE, Aman]
 ```
 
 ### How do you remove duplicates from a list using Stream?
@@ -949,7 +949,7 @@ class Employee {
 }
 
 List<Employee> employees = List.of(
-    new Employee("Akasht", 4000),
+    new Employee("Akshay", 4000),
     new Employee("Akash", 6000),
     new Employee("Mark", 7000)
 );
@@ -1071,7 +1071,7 @@ class Employee {
 }
 
 List<Employee> employees = List.of(
-    new Employee("Akasht", "IT"),
+    new Employee("Akshay", "IT"),
     new Employee("Akash", "HR"),
     new Employee("Aman", "IT")
 );
@@ -1081,7 +1081,7 @@ Map<String, List<Employee>> grouped = employees.stream()
 
 grouped.forEach((k, v) -> System.out.println(k + " => " + v.stream().map(e -> e.name).toList()));
 // Output:
-// IT => [Akasht, Aman]
+// IT => [Akshay, Aman]
 // HR => [Akash]
 ```
 
@@ -1099,6 +1099,181 @@ Set<String> duplicates = items.stream()
 
 System.out.println(duplicates); // Output: [apple, banana]
 ```
+
+## Java 8 Method References & Lambda Expressions
+
+### Lambda Expressions
+
+### What is a lambda expression in Java?
+
+A lambda expression is a **short block of code** which takes in parameters and returns a value.
+It's used to implement **functional interfaces** (interfaces with a single abstract method).
+
+**Syntax:**
+
+```java
+(parameter) -> expression
+```
+
+**Example:**
+
+```java
+Comparator<Integer> comp = (a, b) -> Integer.compare(a, b);
+```
+
+### What is the benefit of using lambdas?
+
+* More concise and readable code
+* Enables **functional programming**
+* Supports **functional chaining**
+* Eliminates boilerplate of anonymous classes
+
+### What are functional interfaces?
+
+An interface with exactly **one abstract method** is a functional interface.
+They can have default or static methods.
+
+Examples:
+
+* `Runnable`, `Comparator<T>`, `Callable<V>`
+* Java 8 interfaces: `Predicate<T>`, `Function<T, R>`, `Supplier<T>`, `Consumer<T>`
+
+Annotation:
+
+```java
+@FunctionalInterface
+public interface MyInterface {
+    void doSomething();
+}
+```
+
+### What is the syntax difference between anonymous classes and lambdas?
+
+**Anonymous class:**
+
+```java
+Runnable r = new Runnable() {
+    public void run() {
+        System.out.println("Running");
+    }
+};
+```
+
+**Lambda:**
+
+```java
+Runnable r = () -> System.out.println("Running");
+```
+
+Lambdas are more concise and readable.
+
+### Can lambdas access variables from the enclosing scope?
+
+Yes, but only **effectively final** variables — i.e., variables that are not changed after assignment.
+
+```java
+int factor = 2;
+Function<Integer, Integer> multiplier = x -> x * factor;
+```
+
+### What is functional chaining with lambdas?
+
+**Functional chaining** is the ability to **chain multiple operations** (map, filter, reduce) using lambdas.
+
+**Example:**
+
+```java
+List<String> names = Arrays.asList("Tom", "Jerry", "Bob");
+names.stream()
+     .filter(s -> s.length() > 3)
+     .map(String::toUpperCase)
+     .forEach(System.out::println);
+```
+
+This makes code more **declarative**, **clean**, and **pipeline-friendly**.
+
+### Method References
+
+### What is a method reference?
+
+Method reference is a **shorthand** for calling a method via a lambda, when the lambda **only calls an existing method**.
+
+**Syntax:**
+
+```java
+ClassName::methodName
+```
+
+### What are the types of method references?
+
+| Type                       | Syntax Example              |
+| -------------------------- | --------------------------- |
+| Static method              | `ClassName::staticMethod`   |
+| Instance method (specific) | `instance::instanceMethod`  |
+| Instance method (any)      | `ClassName::instanceMethod` |
+| Constructor reference      | `ClassName::new`            |
+
+### How do method references improve readability?
+
+They reduce boilerplate by **removing repetitive code** that merely forwards arguments to another method.
+
+**Example:**
+
+```java
+list.forEach(item -> System.out.println(item)); //Lambda
+list.forEach(System.out::println);              //Method reference
+```
+
+### Can method references be used with functional interfaces?
+
+Yes. Wherever a lambda can be used, a method reference can be used **if the signature matches**.
+
+```java
+Function<String, Integer> parse = Integer::parseInt;
+```
+
+### What will this return?
+
+```java
+Function<String, String> trim = String::trim;
+System.out.println(trim.apply("  Hello  "));
+```
+
+Output: `"Hello"`
+The method reference `String::trim` binds the method `trim()` of any `String` instance.
+
+### When would you choose a lambda over a method reference?
+
+Use a **lambda** when:
+
+* You need additional logic
+* You're composing multiple operations
+* Method reference doesn't match your intent clearly
+
+Use a **method reference** when:
+
+* The lambda **just calls an existing method**
+* It improves **conciseness and clarity**
+
+### What does this code do?
+
+```java
+List<String> names = Arrays.asList("Anna", "Mike", "Bob");
+names.stream()
+     .sorted(String::compareToIgnoreCase)
+     .forEach(System.out::println);
+```
+
+It sorts the names alphabetically (case-insensitive) and prints them.
+
+### What is the return type of a lambda?
+
+The return type is **inferred** by the compiler from the context of the **functional interface** being implemented.
+
+### Can lambdas throw exceptions?
+
+Yes, but only **unchecked exceptions**.
+For checked exceptions, the functional interface must declare `throws` clause explicitly (e.g., `Callable<T>`).
 
 ## Exceptions in Java
 
