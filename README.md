@@ -1827,6 +1827,238 @@ When we want to define a family of algorithms, encapsulate each one, and make th
 * Factory: Creates objects without exposing the creation logic.
 * Abstract Factory: Creates families of related or dependent objects without specifying their concrete classes.
 
+### Singleton Pattern
+
+### What is the Singleton Design Pattern?
+
+The **Singleton Pattern** ensures that a class has **only one instance** and provides a **global access point** to it.
+
+### How do you implement a thread-safe Singleton in Java?
+
+**Using `synchronized` block (lazy initialization):**
+
+```java
+public class Singleton {
+    private static Singleton instance;
+
+    private Singleton() {}
+
+    public static synchronized Singleton getInstance() {
+        if (instance == null)
+            instance = new Singleton();
+        return instance;
+    }
+}
+```
+
+**Using Bill Pugh (recommended):**
+
+```java
+public class Singleton {
+    private Singleton() {}
+
+    private static class Holder {
+        private static final Singleton INSTANCE = new Singleton();
+    }
+
+    public static Singleton getInstance() {
+        return Holder.INSTANCE;
+    }
+}
+```
+
+**Using enum (best way):**
+
+```java
+public enum SingletonEnum {
+    INSTANCE;
+
+    public void doSomething() { }
+}
+```
+
+### Why is enum the best way to implement a Singleton?
+
+* Enum is **thread-safe**
+* Protects against **serialization**, **reflection**, and **cloning attacks**
+* Simplest implementation
+
+### How do you prevent reflection in Singleton?
+
+Throw an exception if the constructor is called more than once:
+
+```java
+private Singleton() {
+    if (instance != null)
+        throw new RuntimeException("Use getInstance()");
+}
+```
+
+### Factory Pattern
+
+### What is the Factory Pattern?
+
+The **Factory Pattern** defines an interface for creating an object but lets subclasses decide which class to instantiate.
+
+Useful when the object creation logic is **complex or varies**.
+
+### Give an example of the Factory Pattern in Java.
+
+```java
+interface Shape {
+    void draw();
+}
+
+class Circle implements Shape {
+    public void draw() { System.out.println("Circle"); }
+}
+
+class Rectangle implements Shape {
+    public void draw() { System.out.println("Rectangle"); }
+}
+
+class ShapeFactory {
+    public static Shape getShape(String type) {
+        switch (type) {
+            case "CIRCLE": return new Circle();
+            case "RECTANGLE": return new Rectangle();
+            default: throw new IllegalArgumentException("Unknown shape");
+        }
+    }
+}
+```
+
+**Usage:**
+
+```java
+Shape shape = ShapeFactory.getShape("CIRCLE");
+shape.draw();
+```
+
+### How is Factory Pattern different from Abstract Factory Pattern?
+
+| Feature      | Factory Pattern | Abstract Factory Pattern          |
+| ------------ | --------------- | --------------------------------- |
+| Creates      | One product     | Related products families         |
+| Pattern type | Creational      | Creational                        |
+| Example      | `ShapeFactory`  | `UIFactory` (Windows/Mac Buttons) |
+
+### Strategy Pattern
+
+### What is the Strategy Pattern?
+
+Strategy Pattern defines a family of algorithms, encapsulates each one, and makes them interchangeable at runtime.
+
+### Give an example of Strategy Pattern in Java.
+
+```java
+interface PaymentStrategy {
+    void pay(int amount);
+}
+
+class CreditCardPayment implements PaymentStrategy {
+    public void pay(int amount) {
+        System.out.println("Paid " + amount + " via Credit Card");
+    }
+}
+
+class PayPalPayment implements PaymentStrategy {
+    public void pay(int amount) {
+        System.out.println("Paid " + amount + " via PayPal");
+    }
+}
+
+class ShoppingCart {
+    private PaymentStrategy strategy;
+
+    public void setPaymentStrategy(PaymentStrategy strategy) {
+        this.strategy = strategy;
+    }
+
+    public void checkout(int amount) {
+        strategy.pay(amount);
+    }
+}
+```
+
+**Usage:**
+
+```java
+ShoppingCart cart = new ShoppingCart();
+cart.setPaymentStrategy(new PayPalPayment());
+cart.checkout(100);
+```
+
+### Where is Strategy Pattern used in Java libraries?
+
+* `Comparator<T>` in `Collections.sort(list, comparator)`
+* `Runnable` interface in threads
+* Spring: `BeanNameViewResolver`, `ResourceLoader`, `AuthenticationProvider`
+
+### Observer Pattern
+
+### What is the Observer Pattern?
+
+Observer Pattern defines a **one-to-many relationship** between objects so that when one object changes state, all its dependents are notified.
+
+### Give an example of Observer Pattern in Java.
+
+```java
+interface Observer {
+    void update(String message);
+}
+
+class EmailSubscriber implements Observer {
+    public void update(String message) {
+        System.out.println("Email received: " + message);
+    }
+}
+
+class MessagePublisher {
+    private List<Observer> observers = new ArrayList<>();
+
+    public void subscribe(Observer o) { observers.add(o); }
+    public void unsubscribe(Observer o) { observers.remove(o); }
+
+    public void notifyObservers(String message) {
+        for (Observer o : observers) {
+            o.update(message);
+        }
+    }
+}
+```
+
+**Usage:**
+
+```java
+MessagePublisher publisher = new MessagePublisher();
+Observer user1 = new EmailSubscriber();
+publisher.subscribe(user1);
+publisher.notifyObservers("New article published!");
+```
+
+### Where is Observer Pattern used in Java?
+
+* `java.util.Observer` and `Observable` (deprecated in Java 9)
+* Event systems like `ActionListener` in Swing
+* Spring: `ApplicationEventPublisher`, `@EventListener`
+
+### What are differences between Strategy and Observer?
+
+| Feature      | Strategy                    | Observer                          |
+| ------------ | --------------------------- | --------------------------------- |
+| Pattern Type | Behavioral                  | Behavioral                        |
+| Purpose      | Choose algorithm at runtime | Notify dependents of state change |
+| Relationship | 1-to-1                      | 1-to-many                         |
+| Example      | Payment strategies          | Event listener system             |
+
+### Why are design patterns important in real-world projects?
+
+* Provide proven solutions to common problems
+* Improve **code reusability** and **flexibility**
+* Promote **SOLID** principles
+* Enhance **communication** among developers using common terminology
+
 ## Miscellaneous
 
 ### What is varargs in Java? When would you use it?
