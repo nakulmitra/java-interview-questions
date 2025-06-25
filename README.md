@@ -2059,6 +2059,110 @@ publisher.notifyObservers("New article published!");
 * Promote **SOLID** principles
 * Enhance **communication** among developers using common terminology
 
+## Hashing, `equals()` and `hashCode()`
+
+### What is hashing in Java?
+
+Hashing is the process of converting an object (or key) into an integer (called **hash code**) that represents the bucket index where the object will be stored in **hash-based collections** like `HashMap` and `HashSet`.
+
+### What is `hashCode()` in Java?
+
+`hashCode()` is a method defined in `Object` class that returns an `int` hash value.
+Collections like `HashMap`, `HashSet`, and `Hashtable` use it to **compute bucket location**.
+
+### What is `equals()` in Java?
+
+The `equals()` method compares two objects for **logical equality**.
+You should override `equals()` when you want to define **custom object comparison** logic.
+
+### What is the contract between `equals()` and `hashCode()`?
+
+* If two objects are **equal** via `equals()`, they **must** return the **same** `hashCode()`.
+* If two objects return **different** hash codes, they **must not** be equal.
+* **If only `equals()` is overridden and not `hashCode()`**, hash-based collections may behave incorrectly.
+
+### How does `HashMap` work internally?
+
+1. Computes the **hash code** of the key using `hashCode()`.
+2. Applies a hashing function to find the **bucket index**.
+3. If bucket is **empty**, the entry is added.
+4. If not, uses `equals()` to check if the key already exists:
+
+   * If yes, it **updates** the value.
+   * If no, it handles **collision** (chaining or tree-based node).
+
+### How does `HashSet` use `hashCode()` and `equals()`?
+
+`HashSet` is backed by a `HashMap`. It stores keys in the map with a dummy value.
+So it uses `hashCode()` to find the bucket and `equals()` to check if the element already exists.
+
+### Why should you override both `equals()` and `hashCode()` when using custom objects in a `HashSet` or `HashMap`?
+
+If only `equals()` is overridden, two equal objects may **end up in different buckets**, causing **duplicate entries** or **lookup failures**.
+
+### What happens if two keys have the same hash code in a `HashMap`?
+
+* Hash collision occurs
+* Java uses **separate chaining** (linked list or tree)
+* It traverses the list and uses `equals()` to find the correct key
+
+### What is the default bucket threshold for converting a collision list to a tree in `HashMap`?
+
+If the number of items in a bucket exceeds **8**, and the map has more than **64 buckets**, it converts the list to a **balanced tree (TreeNode)** to improve lookup speed from O(n) -> O(log n).
+
+### What is the default load factor of a `HashMap`?
+
+`0.75` - when the number of entries exceeds **75% of the bucket size**, the capacity is **doubled** (resize operation).
+
+### Sample: How would you override `equals()` and `hashCode()` in a custom class?
+
+```java
+public class Employee {
+    private int id;
+    private String name;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Employee)) return false;
+        Employee emp = (Employee) o;
+        return id == emp.id && name.equals(emp.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name);
+    }
+}
+```
+
+### Can `hashCode()` return negative values?
+
+Yes, `hashCode()` can be negative. It returns a 32-bit integer.
+However, collections internally use **`(hash & (n - 1))`** to calculate non-negative bucket index.
+
+### What is a good `hashCode()` implementation?
+
+* Should distribute values **evenly** across buckets
+* Should be **consistent**: same object always returns same hash
+* Should combine fields using a **prime number multiplier** (e.g., 31)
+
+### Why is `Objects.hash(...)` recommended?
+
+It simplifies writing `hashCode()` by safely handling `null` values and combining multiple fields efficiently.
+
+```java
+@Override
+public int hashCode() {
+    return Objects.hash(id, name, dept);
+}
+```
+
+### Can you store `null` as a key or value in `HashMap` or `HashSet`?
+
+* `HashMap` allows **1 null key** and **multiple null values**
+* `HashSet` allows **1 null element** (because it's backed by a `HashMap`)
+
 ## Miscellaneous
 
 ### What is varargs in Java? When would you use it?
