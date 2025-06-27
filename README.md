@@ -1100,6 +1100,70 @@ Set<String> duplicates = items.stream()
 System.out.println(duplicates); // Output: [apple, banana]
 ```
 
+### Group employees by the first character of their name and sort the map's keys in descending order (Z to A) and finally sort the employees in each group in ascending order by name
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        List<Employees> employees = Arrays.asList(new Employees("Aman", 30, 70000), new Employees("Bobby", 45, 90000),
+				new Employees("Cherry", 35, 66000), new Employees("David", 38, 64000),
+				new Employees("Janet", 28, 80000), new Employees("David", 28, 90000), new Employees("Aman", 32, 72000));
+
+		Map<Character, List<Employees>> emp = employees.stream()
+				.collect(Collectors.groupingBy(e -> Character.toUpperCase(e.getName().charAt(0)),
+						() -> new TreeMap<>(Comparator.reverseOrder()),
+						Collectors.collectingAndThen(Collectors.toList(), list -> list.stream()
+								.sorted(Comparator.comparing(Employees::getName)).collect(Collectors.toList()))));
+    }
+}
+
+class Employees {
+	private String name;
+	private int age;
+	private double salary;
+
+	public Employees() {
+		super();
+	}
+
+	public Employees(String name, int age, double salary) {
+		super();
+		this.name = name;
+		this.age = age;
+		this.salary = salary;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public int getAge() {
+		return age;
+	}
+
+	public void setAge(int age) {
+		this.age = age;
+	}
+
+	public double getSalary() {
+		return salary;
+	}
+
+	public void setSalary(double salary) {
+		this.salary = salary;
+	}
+
+	@Override
+	public String toString() {
+		return "Employees [name=" + name + ", age=" + age + ", salary=" + salary + "]";
+	}
+}
+```
+
 ## Java 8 Method References & Lambda Expressions
 
 ### Lambda Expressions
