@@ -143,7 +143,7 @@ print(5); // int is autoboxed to Integer
 
 ### What is an immutable class in Java?
 
-An **immutable class** is one whose **state cannot be changed after it is created**. Once an object is initialized, you **cannot modify** its fields.
+An **immutable class** is one whose **state cannot be changed after it is created**. Once an object is initialized, we **cannot modify** its fields.
 
 Examples:
 
@@ -157,7 +157,7 @@ Examples:
 * **Safe in collections** - no risk of corruption or inconsistency
 * **Ease of testing** - no hidden state changes
 
-### How do you create an immutable class in Java?
+### How do we create an immutable class in Java?
 
 To create an immutable class:
 
@@ -206,9 +206,9 @@ Yes, `String` is immutable because:
 * Prevents race conditions
 * Ideal for **shared configuration** and **DTOs** in concurrent systems
 
-### Can you have a class with some mutable and some immutable fields?
+### Can we have a class with some mutable and some immutable fields?
 
-You **can**, but such a class is **not fully immutable**.
+We **can**, but such a class is **not fully immutable**.
 If one field can change, the object's state is considered mutable.
 If absolutely needed, expose only unmodifiable or defensive copies.
 
@@ -223,7 +223,7 @@ return new ArrayList<>(this.hobbies);    // In getter
 
 ### Can we use `clone()` instead of defensive copying?
 
-You **can**, but it's not recommended unless:
+We **can**, but it's not recommended unless:
 
 * The object implements `Cloneable` properly
 * Deep cloning is required
@@ -540,6 +540,134 @@ This is why we can't extend another class.
 - Uses segment locking or bucket-level locking for performance.
 - Prevents `ConcurrentModificationException`.
 
+## Comparator vs Comparable in Java
+
+### What is the difference between `Comparable` and `Comparator` in Java?
+
+| Feature             | `Comparable`                    | `Comparator`                 |
+| ------------------- | ------------------------------- | ---------------------------- |
+| Package             | `java.lang`                     | `java.util`                  |
+| Purpose             | Natural ordering                | Custom ordering              |
+| Interface Method    | `compareTo(T o)`                | `compare(T o1, T o2)`        |
+| Implementation Site | In the class being sorted       | Separate class or lambda     |
+| Modifies class?     | Yes (modifies original class) | No (keeps class untouched) |
+
+### How does `Comparable` work in Java?
+
+The class implements `Comparable<T>` and overrides the `compareTo()` method to define its **natural ordering**.
+
+```java
+public class Student implements Comparable<Student> {
+    int id;
+    String name;
+
+    public int compareTo(Student other) {
+        return this.id - other.id;
+    }
+}
+```
+
+### How does `Comparator` work in Java?
+
+`Comparator` defines a **custom order** for objects. It can be passed to sorting methods like `Collections.sort()` or `List.sort()`.
+
+```java
+Comparator<Student> nameComparator = (s1, s2) -> s1.name.compareTo(s2.name);
+Collections.sort(studentList, nameComparator);
+```
+
+### Can we use both `Comparable` and `Comparator` in the same class?
+
+Yes. `Comparable` defines the **default (natural) sort order**, while `Comparator` can be used for **alternative sort orders**.
+
+### How does Java handle sorting when both are present?
+
+* If we use `Collections.sort(list)` -> it uses `Comparable`.
+* If we use `Collections.sort(list, comparator)` -> it uses `Comparator`.
+
+### Can we sort a list of objects without modifying the class?
+
+Yes, by using `Comparator`. It keeps our original class **closed for modification** (follows Open-Closed Principle).
+
+```java
+List<Student> students = ...;
+students.sort(Comparator.comparing(Student::getName));
+```
+
+### What happens if we don't implement `Comparable` and try to sort a list?
+
+If we use `Collections.sort(list)` without a `Comparator`, and the class doesn't implement `Comparable`, it will throw:
+
+```
+java.lang.ClassCastException
+```
+
+### What is the return contract of `compareTo()` and `compare()` methods?
+
+* Return **negative**: `this < other`
+* Return **zero**: `this == other`
+* Return **positive**: `this > other`
+
+### What are Java 8+ ways to simplify Comparator logic?
+
+```java
+students.sort(Comparator.comparing(Student::getName));
+students.sort(Comparator.comparingInt(Student::getId).reversed());
+```
+
+Java 8+ methods like `comparing()`, `thenComparing()`, `reversed()` greatly reduce boilerplate.
+
+### How to sort using multiple fields (chaining comparators)?
+
+```java
+students.sort(
+    Comparator.comparing(Student::getName)
+              .thenComparingInt(Student::getId)
+);
+```
+
+### Can we use lambda expressions to define `Comparator`?
+
+Yes. Lambdas make defining comparators very concise.
+
+```java
+Comparator<Employee> comp = (e1, e2) -> e1.salary - e2.salary;
+```
+
+### What is the difference between `equals()` and `compareTo()`?
+
+| Feature            | `equals()`                       | `compareTo()`                       |
+| ------------------ | -------------------------------- | ----------------------------------- |
+| Returns            | `boolean`                        | `int` (positive, zero, or negative) |
+| Used in            | Logical equality (e.g., HashSet) | Sorting and ordering                |
+| Override required? | Yes, for collections equality  | Yes, for natural sorting          |
+
+### What if `compareTo()` returns inconsistent values with `equals()`?
+
+Collections like `TreeSet`, `TreeMap` may behave incorrectly - such as treating equal objects as distinct.
+
+**Best Practice:**
+Ensure that `compareTo()` returns `0` **if and only if** `equals()` returns `true`.
+
+### Can we write a Comparator to sort strings ignoring case?
+
+```java
+List<String> list = Arrays.asList("apple", "Banana", "cherry");
+list.sort(String.CASE_INSENSITIVE_ORDER);
+```
+
+Or:
+
+```java
+list.sort((s1, s2) -> s1.compareToIgnoreCase(s2));
+```
+
+### Where are `Comparable` and `Comparator` used in Java libraries?
+
+* `TreeSet`, `TreeMap`: rely on `compareTo()` or `Comparator`
+* `Arrays.sort()`, `Collections.sort()`: use both
+* Java Streams: `.sorted(Comparator)` for sorting
+
 ## Java 8 Features
 
 ### What is a Functional Interface?
@@ -759,7 +887,7 @@ List<String> filtered = names.stream()
 
 No, `Predicate` is **not serializable** by default. If we need serialization, we need to implement a custom `Predicate` that extends both `Predicate` and `Serializable`.
 
-### How would you write a custom reusable predicate?
+### How would we write a custom reusable predicate?
 
 ```java
 public class MyPredicates {
@@ -839,7 +967,7 @@ Note: Use with caution due to thread-safety and ordering concerns.
 
 No. Once a terminal operation is called, the stream is **consumed** and cannot be reused. We must create a new stream.
 
-### How do you count the number of strings in a list that start with a specific letter (e.g., "A")?
+### How do we count the number of strings in a list that start with a specific letter (e.g., "A")?
 
 ```java
 List<String> names = List.of("Aman", "Bob", "Adam", "Ankit", "Brian");
@@ -851,7 +979,7 @@ long count = names.stream()
 System.out.println(count); // Output: 3
 ```
 
-### How do you find the maximum number in a list using Stream?
+### How do we find the maximum number in a list using Stream?
 
 ```java
 List<Integer> numbers = List.of(10, 25, 3, 47, 15);
@@ -863,7 +991,7 @@ int max = numbers.stream()
 System.out.println(max); // Output: 47
 ```
 
-### How do you convert a list of strings to uppercase using Stream API?
+### How do we convert a list of strings to uppercase using Stream API?
 
 ```java
 List<String> names = List.of("Akshay", "doe", "Aman");
@@ -875,7 +1003,7 @@ List<String> upper = names.stream()
 System.out.println(upper); // [Akshay, DOE, Aman]
 ```
 
-### How do you remove duplicates from a list using Stream?
+### How do we remove duplicates from a list using Stream?
 
 ```java
 List<Integer> numbers = List.of(1, 2, 2, 3, 4, 4, 5);
@@ -899,7 +1027,7 @@ System.out.println(grouped);
 // Output: {a=[apple, apricot], b=[banana, blueberry]}
 ```
 
-### How do you join a list of strings with commas using Stream API?
+### How do we join a list of strings with commas using Stream API?
 
 ```java
 List<String> words = List.of("Java", "Python", "Go");
@@ -910,7 +1038,7 @@ String result = words.stream()
 System.out.println(result); // Output: Java, Python, Go
 ```
 
-### How do you calculate the sum of all even numbers in a list?
+### How do we calculate the sum of all even numbers in a list?
 
 ```java
 List<Integer> numbers = List.of(1, 2, 3, 4, 5, 6);
@@ -923,7 +1051,7 @@ int sum = numbers.stream()
 System.out.println(sum); // Output: 12
 ```
 
-### How do you sort a list of strings in reverse alphabetical order?
+### How do we sort a list of strings in reverse alphabetical order?
 
 ```java
 List<String> names = List.of("Apple", "Mango", "Banana");
@@ -935,7 +1063,7 @@ List<String> sorted = names.stream()
 System.out.println(sorted); // [Mango, Banana, Apple]
 ```
 
-### How do you filter a list of objects based on a field?
+### How do we filter a list of objects based on a field?
 
 ```java
 class Employee {
@@ -959,7 +1087,7 @@ List<Employee> highEarners = employees.stream()
     .collect(Collectors.toList());
 ```
 
-### How do you count the frequency of elements in a list?
+### How do we count the frequency of elements in a list?
 
 ```java
 List<String> items = List.of("apple", "banana", "apple", "orange", "banana", "apple");
@@ -971,7 +1099,7 @@ System.out.println(freq);
 // Output: {orange=1, banana=2, apple=3}
 ```
 
-### How do you partition a list into two based on a condition?
+### How do we partition a list into two based on a condition?
 
 ```java
 List<Integer> numbers = List.of(1, 2, 3, 4, 5, 6);
@@ -1306,13 +1434,13 @@ System.out.println(trim.apply("  Hello  "));
 Output: `"Hello"`
 The method reference `String::trim` binds the method `trim()` of any `String` instance.
 
-### When would you choose a lambda over a method reference?
+### When would we choose a lambda over a method reference?
 
 Use a **lambda** when:
 
-* You need additional logic
-* You're composing multiple operations
-* Method reference doesn't match your intent clearly
+* We need additional logic
+* We're composing multiple operations
+* Method reference doesn't match our intent clearly
 
 Use a **method reference** when:
 
@@ -1346,7 +1474,7 @@ For checked exceptions, the functional interface must declare `throws` clause ex
 * **Checked exceptions**: Subclass of `Exception` (excluding `RuntimeException`), must be declared using `throws` or handled in a `try-catch`. Example: `IOException`, `SQLException`.
 * **Unchecked exceptions**: Subclass of `RuntimeException`, not checked at compile time. Example: `NullPointerException`, `IndexOutOfBoundsException`.
 
-### Can you create a custom exception in Java?
+### Can we create a custom exception in Java?
 Yes, by extending `Exception` or `RuntimeException`.
 
 ```java
@@ -1421,12 +1549,12 @@ public int test() {
 | `finally`    | Block that always executes after `try-catch`                           |
 | `finalize()` | Method invoked by GC before object destruction (Deprecated in Java 9+) |
 
-### Can you override a `finalize()` method?
+### Can we override a `finalize()` method?
 Yes, but it's **not recommended**. Also, it's deprecated starting from Java 9 and removed in later versions. Use `java.lang.ref.Cleaner` or try-with-resources instead.
 
 ## How `hashCode()` and `equals()` are linked in Java
 
-### Why should you override `hashCode()` when overriding `equals()`?
+### Why should we override `hashCode()` when overriding `equals()`?
 Because Java's collections (e.g., `HashMap`, `HashSet`) use **`hashCode()` to find the bucket** and **`equals()` to check object equality**. If `equals()` is overridden and `hashCode()` isn't, inconsistent behavior may result in object not being found in a collection.
 
 ### What are the contracts of `hashCode()` and `equals()`?
@@ -1541,7 +1669,7 @@ MyClass obj = (MyClass) in.readObject();
 If the referenced object is **also Serializable**, it will be serialized recursively.
 If not, `NotSerializableException` is thrown.
 
-### Can you serialize static fields?
+### Can we serialize static fields?
 
 **No.** Static fields belong to the class, not the object instance, so they are not serialized.
 
@@ -1590,7 +1718,7 @@ protected Object readResolve() {
 * `Runnable`: Does not return a result, cannot throw checked exceptions.
 * `Callable<V>`: Returns a result (`V`) and can throw checked exceptions. Used with `ExecutorService`.
 
-### How do you prevent thread-safety issues in Java?
+### How do we prevent thread-safety issues in Java?
 
 * Use `synchronized` blocks or methods
 * Use thread-safe collections (e.g., `ConcurrentHashMap`)
@@ -1701,9 +1829,9 @@ List list = new ArrayList(); //Raw type
 **Implication:**
 
 * No method overloading based on generic types.
-* You cannot check `instanceof` with a generic type (`if (obj instanceof List<String>)`).
+* We cannot check `instanceof` with a generic type (`if (obj instanceof List<String>)`).
 
-### Can you overload a method using generic types?
+### Can we overload a method using generic types?
 
 **No.** Due to **type erasure**, the following methods will cause a compilation error:
 
@@ -1734,7 +1862,7 @@ public void printList(List<? extends Number> list)
 
 Allows: `List<Integer>`, `List<Double>`, etc.
 
-**Used when you only read values** (covariant behavior).
+**Used when we only read values** (covariant behavior).
 
 ### What is lower-bounded wildcard (`super`) in Java Generics?
 
@@ -1746,7 +1874,7 @@ public void addToList(List<? super Integer> list)
 
 Allows: `List<Integer>`, `List<Number>`, `List<Object>`
 
-**Used when you want to write values into a structure** (contravariant behavior).
+**Used when we want to write values into a structure** (contravariant behavior).
 
 ### What is the PECS principle in Java Generics?
 
@@ -1768,18 +1896,18 @@ Allows: `List<Integer>`, `List<Number>`, `List<Object>`
 
 Useful for read-only access when type is not relevant.
 
-### Can you use primitive types with generics?
+### Can we use primitive types with generics?
 
 No. Java generics work only with **reference types**, not primitives.
 
-You must use wrapper classes:
+We must use wrapper classes:
 
 ```java
 List<int>     //Invalid
 List<Integer> //Valid
 ```
 
-### Can you create arrays of generic types?
+### Can we create arrays of generic types?
 
 No. Generic arrays are not allowed because of **type erasure**.
 
@@ -1803,7 +1931,7 @@ E.g., `List list = new ArrayList();`
 
 Allowed for **backward compatibility**, but not type-safe - leads to runtime `ClassCastException`.
 
-### Can you make a generic class or method in Java?
+### Can we make a generic class or method in Java?
 
 Yes.
 
@@ -1825,7 +1953,7 @@ public <T> void print(T item) {
 }
 ```
 
-### How do you restrict a generic class to accept only certain types?
+### How do we restrict a generic class to accept only certain types?
 
 Use bounded types:
 
@@ -1897,7 +2025,7 @@ When we want to define a family of algorithms, encapsulate each one, and make th
 
 The **Singleton Pattern** ensures that a class has **only one instance** and provides a **global access point** to it.
 
-### How do you implement a thread-safe Singleton in Java?
+### How do we implement a thread-safe Singleton in Java?
 
 **Using `synchronized` block (lazy initialization):**
 
@@ -1947,7 +2075,7 @@ public enum SingletonEnum {
 * Protects against **serialization**, **reflection**, and **cloning attacks**
 * Simplest implementation
 
-### How do you prevent reflection in Singleton?
+### How do we prevent reflection in Singleton?
 
 Throw an exception if the constructor is called more than once:
 
@@ -2137,7 +2265,7 @@ Collections like `HashMap`, `HashSet`, and `Hashtable` use it to **compute bucke
 ### What is `equals()` in Java?
 
 The `equals()` method compares two objects for **logical equality**.
-You should override `equals()` when you want to define **custom object comparison** logic.
+We should override `equals()` when we want to define **custom object comparison** logic.
 
 ### What is the contract between `equals()` and `hashCode()`?
 
@@ -2160,7 +2288,7 @@ You should override `equals()` when you want to define **custom object compariso
 `HashSet` is backed by a `HashMap`. It stores keys in the map with a dummy value.
 So it uses `hashCode()` to find the bucket and `equals()` to check if the element already exists.
 
-### Why should you override both `equals()` and `hashCode()` when using custom objects in a `HashSet` or `HashMap`?
+### Why should we override both `equals()` and `hashCode()` when using custom objects in a `HashSet` or `HashMap`?
 
 If only `equals()` is overridden, two equal objects may **end up in different buckets**, causing **duplicate entries** or **lookup failures**.
 
@@ -2178,7 +2306,7 @@ If the number of items in a bucket exceeds **8**, and the map has more than **64
 
 `0.75` - when the number of entries exceeds **75% of the bucket size**, the capacity is **doubled** (resize operation).
 
-### Sample: How would you override `equals()` and `hashCode()` in a custom class?
+### Sample: How would we override `equals()` and `hashCode()` in a custom class?
 
 ```java
 public class Employee {
@@ -2222,14 +2350,14 @@ public int hashCode() {
 }
 ```
 
-### Can you store `null` as a key or value in `HashMap` or `HashSet`?
+### Can we store `null` as a key or value in `HashMap` or `HashSet`?
 
 * `HashMap` allows **1 null key** and **multiple null values**
 * `HashSet` allows **1 null element** (because it's backed by a `HashMap`)
 
 ## Miscellaneous
 
-### What is varargs in Java? When would you use it?
+### What is varargs in Java? When would we use it?
 
 `varargs` allows a method to accept **zero or more arguments** of a specified type.
 Syntax:
@@ -2242,9 +2370,9 @@ public void printNames(String... names) {
 }
 ```
 
-You use `varargs` when you don't know in advance how many parameters a method will receive.
+We use `varargs` when we don't know in advance how many parameters a method will receive.
 
-### Can you have multiple varargs in a method signature?
+### Can we have multiple varargs in a method signature?
 
 **No**, a method can have **only one varargs parameter**, and it **must be the last parameter** in the method signature.
 
@@ -2267,9 +2395,9 @@ is interpreted by the compiler as:
 public void show(String[] names) { }
 ```
 
-### What happens when you pass `null` to a varargs method?
+### What happens when we pass `null` to a varargs method?
 
-If you pass `null`, the method receives a `null` reference, not an empty array — leading to `NullPointerException` if accessed.
+If we pass `null`, the method receives a `null` reference, not an empty array — leading to `NullPointerException` if accessed.
 
 ```java
 show(null); // show(String... names) -> names is null
