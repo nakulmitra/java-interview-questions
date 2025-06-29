@@ -107,7 +107,6 @@ int x = i; //NullPointerException at runtime
 
 ### How does autoboxing affect performance?
 
-
 * Frequent boxing/unboxing can lead to **increased memory usage** and **performance overhead**.
 * Especially problematic in **loops**, **streams**, or **high-performance applications**.
 * Prefer primitives where possible in **hot paths**.
@@ -1986,6 +1985,121 @@ Collectors:
 - Use profiling tools: JVisualVM, YourKit, Eclipse MAT
 - Monitor heap usage and GC logs
 - Look for classes holding references too long (e.g., caches, static maps)
+
+## Java 8 Memory Management
+
+### What major memory management change was introduced in Java 8?
+
+The biggest change was the **removal of PermGen (Permanent Generation)** and the introduction of a new memory area called **Metaspace**.
+
+### What was PermGen and why was it removed?
+
+**PermGen** (Permanent Generation) was a part of the heap used to store:
+
+* Class metadata (class names, methods, constant pool)
+* Static fields
+* Interned strings (pre Java 7)
+
+**Problems with PermGen:**
+
+* Fixed in size; could cause `OutOfMemoryError: PermGen space`
+* Hard to tune dynamically
+* Non-uniform across platforms
+
+Hence, it was removed and replaced with **Metaspace** in Java 8.
+
+### What is Metaspace in Java 8?
+
+**Metaspace** is a **native memory area (off-heap)** introduced in Java 8 that stores **class metadata**. Unlike PermGen, it **grows automatically** by default, depending on the system memory.
+
+### How is Metaspace different from PermGen?
+
+| Feature          | PermGen                           | Metaspace (Java 8+)                         |
+| ---------------- | --------------------------------- | ------------------------------------------- |
+| Location         | JVM Heap                          | Native Memory (off-heap)                    |
+| Memory tuning    | `-XX:PermSize`, `-XX:MaxPermSize` | `-XX:MetaspaceSize`, `-XX:MaxMetaspaceSize` |
+| Flexibility      | Fixed size                        | Dynamically grows                           |
+| OOM risk         | Frequent `OutOfMemoryError`       | Less frequent (can still happen)            |
+| Metadata storage | In heap                           | Outside heap                                |
+
+### How can we limit the size of Metaspace in Java 8?
+
+```bash
+-XX:MetaspaceSize=256M
+-XX:MaxMetaspaceSize=512M
+```
+
+* `MetaspaceSize`: Initial size (triggers first GC)
+* `MaxMetaspaceSize`: Upper limit (default is unlimited)
+
+### What happens when Metaspace runs out of memory?
+
+WE get an **`OutOfMemoryError: Metaspace`**
+It occurs if class metadata usage exceeds `MaxMetaspaceSize`.
+
+### What is stored in Metaspace?
+
+* Class metadata
+* Method and field names
+* Method bytecode
+* Annotations
+* Constant pools
+* Reflection data
+
+**Instance fields and static variables** are still stored on the Java heap.
+
+### How can Metaspace leak happen in Java 8?
+
+Typically occurs with **dynamic class loading**, especially in:
+
+* Application servers (Tomcat, JBoss)
+* Hot deployment / ClassLoader leaks
+
+If classes are repeatedly loaded but never unloaded, Metaspace memory keeps growing.
+
+### Does Java 8 move interned strings out of PermGen?
+
+Yes. Starting from **Java 7**, interned strings were moved from **PermGen to the heap**.
+In Java 8, since **PermGen is removed**, interned strings are stored on the **heap**.
+
+### Did Java 8 introduce any other memory improvements?
+
+Yes, other JVM-level performance enhancements in Java 8 include:
+
+* **Compressed Class Pointers (CompressedClassSpaceSize)**
+* Improved **Garbage Collectors** (e.g., G1 becoming more stable)
+* Optimizations for **lambdas** and **method references**
+
+---
+
+### What are some tuning options for Metaspace?
+
+```bash
+-XX:MetaspaceSize=128M              #Initial size
+-XX:MaxMetaspaceSize=512M           #Upper bound
+-XX:CompressedClassSpaceSize=128M   #Compressed class pointers
+```
+
+### Is there still any GC overhead with Metaspace?
+
+Yes, Metaspace growth may **trigger GC** events when reaching thresholds or needing cleanup of unused class metadata. However, tuning is easier compared to PermGen.
+
+### How can we simulate a Metaspace OOM?
+
+By loading too many classes dynamically via custom ClassLoaders in a loop:
+
+```java
+while (true) {
+    URLClassLoader loader = new URLClassLoader(...);
+    Class<?> clazz = loader.loadClass("SomeClass");
+}
+```
+
+This keeps loading classes but never unloads them.
+
+### Is Metaspace GC-ed like the heap?
+
+Metaspace itself is **not garbage collected**, but the **class metadata** stored within it **can be reclaimed** when the associated ClassLoader is garbage collected.
 
 ## Design Patterns (Java)
 
