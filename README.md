@@ -795,6 +795,148 @@ Both represent functions that return a value, but:
 * `Supplier<T>` is **specifically designed** for no-arg producers.
 * `Function<Void, T>` is syntactically awkward and not idiomatic in Java 8+.
 
+## Default & Static Methods in Interfaces (Java 8)
+
+### What are default methods in interfaces? Why were they introduced?
+
+A **default method** in an interface provides a **concrete implementation** so that implementing classes don’t have to override it.
+
+**Introduced in Java 8** to enable **interface evolution** without breaking existing implementations.
+
+```java
+interface Vehicle {
+    default void start() {
+        System.out.println("Vehicle is starting");
+    }
+}
+```
+
+### How is a default method different from an abstract method in an interface?
+
+| Feature             | Abstract Method | Default Method           |
+| ------------------- | --------------- | ------------------------ |
+| Must be implemented | Yes             | No (optional override)   |
+| Contains body       | No              | Yes                      |
+| Java version        | Since Java 1.0  | Since Java 8             |
+
+### Can a class override a default method from an interface?
+
+Yes, a class **can override** a default method if it wants a different behavior.
+
+```java
+class Car implements Vehicle {
+    @Override
+    public void start() {
+        System.out.println("Car is starting");
+    }
+}
+```
+
+### What if a class implements two interfaces with the same default method?
+
+We must **override** the conflicting method to resolve ambiguity.
+
+```java
+interface A {
+    default void greet() { System.out.println("Hello from A"); }
+}
+
+interface B {
+    default void greet() { System.out.println("Hello from B"); }
+}
+
+class C implements A, B {
+    public void greet() {
+        A.super.greet(); //or B.super.greet()
+    }
+}
+```
+
+### What are static methods in interfaces?
+
+Java 8 introduced **static methods in interfaces** that can be called **only on the interface**, not on implementing classes.
+
+```java
+interface Utils {
+    static void log(String msg) {
+        System.out.println("Log: " + msg);
+    }
+}
+```
+
+**Usage:**
+
+```java
+Utils.log("test");
+```
+
+### Can default or static methods be overridden in implementing classes?
+
+| Method Type | Can be Overridden?           |
+| ----------- | ---------------------------- |
+| Default     | Yes, in implementing class |
+| Static      | No, not inherited at all   |
+
+### Why do static methods in interfaces not participate in inheritance?
+
+To avoid **name clashes** and confusion. Static methods are **utility methods** tied to the interface - not to the implementing class.
+
+### Can interfaces have private methods in Java 8?
+
+No. **Private methods in interfaces were introduced in Java 9**, not Java 8.
+
+### What is the purpose of default methods in interfaces?
+
+To allow **backward-compatible interface evolution** - adding new methods without breaking existing implementations.
+
+### Can default methods access static or private methods in the interface?
+
+* Default methods can call **static methods**.
+* They **cannot** access **private methods** in Java 8.
+
+```java
+default void logStart() {
+    Utils.log("Starting...");
+}
+```
+
+### Can abstract classes have default methods like interfaces?
+
+No concept of **"default" keyword** in abstract classes. But **abstract classes can have concrete methods**, which serve a similar purpose.
+
+### What are the limitations of default methods in Java 8?
+
+* Can't override `Object` methods like `equals()`, `hashCode()`, etc.
+* Can't be `synchronized`, `native`, or `strictfp`
+* Can't define instance fields
+* Only one implementation per interface (no multiple versions)
+
+### How are default methods implemented internally by the JVM?
+
+They're treated as **virtual methods** in the interface and invoked using `invokeinterface` bytecode instruction. They are stored in the interface's constant pool but dispatched **dynamically** at runtime.
+
+### Give an example of a default method used in Java 8 APIs.
+
+```java
+List<String> names = Arrays.asList("Aman", "Shreya");
+names.forEach(System.out::println); //forEach is a default method in Iterable
+```
+
+### How do default methods relate to functional interfaces?
+
+Functional interfaces can have **default and static methods**, but still must have **only one abstract method**.
+
+```java
+@FunctionalInterface
+interface Converter<T, R> {
+    R convert(T input);
+
+    default void log(T input) {
+        System.out.println("Converting " + input);
+    }
+}
+```
+
 ## Java Predicate
 
 ### What is a `Predicate` in Java?
