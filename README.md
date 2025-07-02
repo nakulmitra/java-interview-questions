@@ -937,6 +937,134 @@ interface Converter<T, R> {
 }
 ```
 
+## JVM Internals
+
+### JVM Memory Structure
+
+```
+         ______________________________
+        |         Metaspace           | <- (off-heap, class metadata)
+        |_____________________________|
+        |        Old Generation       | <- Long-lived objects
+        |_____________________________|
+        |        Young Generation     | <- New objects (Eden + Survivor)
+        |_____________________________|
+        |_____________________________|
+        |        Java Stack           | <- One per thread (method frames)
+        |_____________________________|
+```
+
+### What is the JVM? How is it different from JRE and JDK?
+
+* **JVM (Java Virtual Machine):** Executes Java bytecode and handles memory, garbage collection, and runtime operations.
+* **JRE (Java Runtime Environment):** JVM + core libraries; required to run Java programs.
+* **JDK (Java Development Kit):** JRE + development tools (javac, javadoc); required to write and compile Java programs.
+
+### What are the key memory areas allocated by the JVM?
+
+| Memory Area              | Description                                               |
+| ------------------------ | --------------------------------------------------------- |
+| **Heap**                 | Stores objects and class instances                        |
+| **Stack**                | Stores method call frames, local variables, return values |
+| **Method Area**          | Stores class metadata, method definitions, constants      |
+| **Program Counter (PC)** | Stores current execution address of each thread           |
+| **Native Method Stack**  | Used for native (non-Java) methods                        |
+
+### What is the difference between Heap and Stack memory in JVM?
+
+| Feature     | Heap                     | Stack                          |
+| ----------- | ------------------------ | ------------------------------ |
+| Stores      | Objects, class instances | Method frames, local variables |
+| Scope       | Shared across threads    | Thread-specific                |
+| Size        | Larger                   | Smaller                        |
+| GC eligible | Yes                    | No (automatically popped)    |
+
+### What is the Method Area (or Metaspace)?
+
+The Method Area (now **Metaspace in Java 8**) stores:
+
+* Class metadata (name, fields, methods)
+* Static variables
+* Constant pool
+
+In Java 8+, Metaspace is **off-heap** and grows dynamically by default.
+
+### What is the ClassLoader in Java?
+
+A **ClassLoader** is responsible for loading class bytecode into memory when the class is referenced for the first time.
+
+**Types of ClassLoaders:**
+
+* **Bootstrap ClassLoader**: Loads core Java classes (rt.jar)
+* **Extension ClassLoader**: Loads classes from `ext` directory
+* **Application ClassLoader**: Loads classes from the application classpath
+* **Custom ClassLoader**: User-defined for specific use cases
+
+### What is the class loading process in JVM?
+
+1. **Loading** - Loads `.class` bytecode into memory
+2. **Linking**:
+
+   * **Verification** - Checks bytecode integrity
+   * **Preparation** - Allocates memory for static variables
+   * **Resolution** - Resolves symbolic references to actual memory locations
+3. **Initialization** - Executes static blocks and initializes static fields
+
+### What is a ClassLoader leak?
+
+A **ClassLoader leak** happens when classes or resources aren't properly unloaded, usually in **web applications** (e.g., re-deployments in Tomcat), causing memory to grow uncontrollably.
+
+### What are the main Garbage Collection (GC) generations in JVM?
+
+* **Young Generation**:
+
+  * Eden + 2 Survivor spaces
+  * New objects are allocated here
+  * Collected using **Minor GC**
+
+* **Old (Tenured) Generation**:
+
+  * Long-lived objects promoted from Young Gen
+  * Collected using **Major/Full GC**
+
+* **Metaspace** (Java 8+):
+
+  * Stores class metadata (replaces PermGen)
+
+### What is Minor GC vs Major GC?
+
+| GC Type       | Applies To       | Frequency  | Pause Time |
+| ------------- | ---------------- | ---------- | ---------- |
+| Minor GC      | Young Generation | Frequent   | Short      |
+| Major/Full GC | Old Generation   | Less often | Long pause |
+
+### What are some common JVM tuning flags (basic level)?
+
+```bash
+-Xms512m                  # Initial heap size
+-Xmx1024m                 # Maximum heap size
+-XX:MetaspaceSize=128m    # Initial Metaspace size (Java 8+)
+-XX:MaxMetaspaceSize=512m # Max Metaspace size
+-XX:+UseG1GC              # Use G1 garbage collector
+-XX:+PrintGCDetails       # Print GC logs
+```
+
+### What happens when the heap memory is full?
+
+If the GC cannot reclaim enough space, JVM throws:
+
+```bash
+java.lang.OutOfMemoryError: Java heap space
+```
+
+### What is JIT (Just-In-Time) Compilation in JVM?
+
+JIT compiles frequently used bytecode to **native machine code at runtime**, improving performance by avoiding repeated interpretation.
+
+### What is the role of the Program Counter Register in JVM?
+
+Each thread has a **Program Counter (PC)** register that points to the **current instruction** being executed. It is thread-specific and helps support **multi-threading**.
+
 ## Java Predicate
 
 ### What is a `Predicate` in Java?
