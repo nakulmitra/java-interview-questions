@@ -2798,6 +2798,131 @@ show(null); // show(String... names) -> names is null
 * `StringBuilder`: Mutable, not thread-safe
 * `StringBuffer`: Mutable, thread-safe (synchronized methods)
 
+## Dependency Injection & Inversion of Control (IoC)
+
+### What is Inversion of Control (IoC)?
+
+**IoC** is a design principle where the control of object creation and dependency management is **inverted from the application to a container/framework**.
+
+In Java (especially Spring), IoC means the **Spring container is responsible** for:
+
+* Instantiating beans
+* Injecting dependencies
+* Managing bean lifecycle
+
+### What is Dependency Injection (DI)? How does it relate to IoC?
+
+**Dependency Injection** is a specific implementation of IoC where **dependencies are provided to a class**, rather than the class creating them itself.
+
+In Spring, DI is the primary method used to achieve IoC.
+
+### What are the types of Dependency Injection supported in Spring?
+
+1. **Constructor Injection**
+2. **Setter Injection**
+3. **Field Injection** (via `@Autowired`, not recommended for testing)
+
+### What is the difference between Constructor and Setter Injection?
+
+| Feature             | Constructor Injection | Setter Injection          |
+| ------------------- | --------------------- | ------------------------- |
+| When used?          | Required dependencies | Optional dependencies     |
+| Immutability        | Promotes immutability | Allows mutability         |
+| Testing             | Easier to test        | Requires setter methods   |
+| Circular Dependency | Fails at runtime      | Can be resolved by Spring |
+
+### How do we enable Dependency Injection in Spring?
+
+Use annotations:
+
+* `@Component`, `@Service`, `@Repository` to define beans
+* `@Autowired`, `@Inject`, or `@Qualifier` to inject dependencies
+* `@Configuration` + `@Bean` for explicit bean registration
+
+### What are Spring beans?
+
+A **Spring bean** is an object that is **managed by the Spring IoC container**. It is created, configured, and managed by the Spring context.
+
+### What is the role of the ApplicationContext in Spring?
+
+`ApplicationContext` is the **central interface to the Spring IoC container**. It:
+
+* Loads bean definitions
+* Wires dependencies
+* Manages lifecycle
+
+### What is annotation-based configuration for DI in Spring?
+
+Spring supports annotations to define and inject beans:
+
+* `@Component` - Marks a class as a Spring-managed component
+* `@Autowired` - Injects dependencies
+* `@Qualifier` - Resolves ambiguity if multiple beans of same type
+
+Example:
+
+```java
+@Component
+public class Engine {}
+
+@Component
+public class Car {
+    @Autowired
+    private Engine engine;
+}
+```
+
+### What happens if multiple beans of the same type are available?
+
+Spring will throw `NoUniqueBeanDefinitionException` unless:
+
+* One bean is marked as `@Primary`, **or**
+* A specific bean is selected using `@Qualifier("beanName")`
+
+### What is the difference between `@Component`, `@Service`, and `@Repository`?
+
+| Annotation    | Purpose                 | Special Behavior                                                   |
+| ------------- | ----------------------- | ------------------------------------------------------------------ |
+| `@Component`  | Generic component       | None                                                               |
+| `@Service`    | Business logic layer    | Marks service for AOP                                              |
+| `@Repository` | Data access layer (DAO) | Enables exception translation (`@PersistenceExceptionTranslation`) |
+
+### Can we inject a collection (List, Set, Map) in Spring?
+
+Yes. Spring can inject a collection of beans using `@Autowired`:
+
+```java
+@Autowired
+private List<PaymentProcessor> processors;
+```
+
+Spring will inject all beans implementing `PaymentProcessor`.
+
+### What is the difference between `@Autowired` and `@Inject`?
+
+| Annotation   | Origin            | Required by default?                 |
+| ------------ | ----------------- | ------------------------------------ |
+| `@Autowired` | Spring-specific   | Yes                                  |
+| `@Inject`    | JSR-330 (Java EE) | Yes (unless used with `@Nullable`)   |
+
+### How does Spring resolve dependencies internally?
+
+Spring maintains a **bean registry**. When a dependency is required, it:
+
+1. Looks up the required type
+2. Filters by name (if `@Qualifier` is used)
+3. Injects the matching bean instance
+
+### What is circular dependency? How does Spring handle it?
+
+* Occurs when two or more beans depend on each other.
+* Spring resolves circular dependencies using **setter injection** (not constructor).
+* Constructor injection circular dependencies result in a runtime error.
+
+### Can we inject a bean into a static field?
+
+No. Spring cannot inject into static fields because they are not tied to an instance. We need to inject via constructor, setter, or use `@PostConstruct`.
+
 ## Let's Connect
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow-blue?logo=linkedin)](https://www.linkedin.com/in/nakul-mitra-microservices-spring-boot-java-postgresql/)
