@@ -2923,6 +2923,149 @@ Spring maintains a **bean registry**. When a dependency is required, it:
 
 No. Spring cannot inject into static fields because they are not tied to an instance. We need to inject via constructor, setter, or use `@PostConstruct`.
 
+## Spring Boot Annotations
+
+### What is `@Component` in Spring?
+
+`@Component` is a **generic stereotype annotation** used to mark a Java class as a **Spring-managed bean**. Spring will autodetect it during **component scanning** and register it in the **application context**.
+
+```java
+@Component
+public class MyUtilityService { }
+```
+
+### What is the difference between `@Component`, `@Service`, and `@Repository`?
+
+| Annotation    | Layer             | Purpose                                    |
+| ------------- | ----------------- | ------------------------------------------ |
+| `@Component`  | General           | Any Spring-managed component               |
+| `@Service`    | Business logic    | Indicates service layer, supports AOP      |
+| `@Repository` | Data access (DAO) | Exception translation + component scanning |
+
+All three are **specializations of `@Component`** and are picked up during component scanning.
+
+### What is `@Repository` and what additional feature does it provide?
+
+`@Repository` marks a class as a **Data Access Object (DAO)** and provides:
+
+* Automatic **exception translation** from persistence exceptions to Spring's `DataAccessException`.
+* **Bean registration** for component scanning.
+
+### What does `@Service` do in Spring Boot?
+
+Marks a class as part of the **service layer** (business logic). It's a **specialized `@Component`** and can be used for **AOP-related operations**, like transaction handling or logging cross-cutting concerns.
+
+### What is the purpose of `@Controller` in Spring MVC?
+
+`@Controller` is used to define a **web controller** that returns **views** (e.g., Thymeleaf templates). It handles **web requests** and maps them to methods using `@RequestMapping`.
+
+### What is the difference between `@Controller` and `@RestController`?
+
+| Feature     | `@Controller`          | `@RestController`             |
+| ----------- | ---------------------- | ----------------------------- |
+| Return type | Views (HTML templates) | Data (typically JSON/XML)     |
+| Combines    | N/A                    | `@Controller + @ResponseBody` |
+| Used for    | Web MVC apps           | RESTful APIs                  |
+
+### What is `@Autowired` in Spring?
+
+`@Autowired` is used for **automatic dependency injection**. Spring scans for a matching bean by **type** and injects it into the field, constructor, or setter method.
+
+```java
+@Autowired
+private MyService myService;
+```
+
+### What is `@Qualifier` used for?
+
+Used with `@Autowired` to **resolve ambiguity** when multiple beans of the same type are available.
+
+```java
+@Autowired
+@Qualifier("emailNotificationService")
+private NotificationService notificationService;
+```
+
+### What does `@SpringBootApplication` do?
+
+It is a **meta-annotation** that combines:
+
+* `@Configuration`
+* `@EnableAutoConfiguration`
+* `@ComponentScan`
+
+It enables **component scanning**, **auto-configuration**, and **bean definitions** in one place — the entry point of a Spring Boot app.
+
+```java
+@SpringBootApplication
+public class MyApp {
+    public static void main(String[] args) {
+        SpringApplication.run(MyApp.class, args);
+    }
+}
+```
+
+### What is `@Configuration` in Spring Boot?
+
+Marks a class as a **source of bean definitions**. Methods annotated with `@Bean` inside this class are treated as **Spring-managed beans**.
+
+```java
+@Configuration
+public class AppConfig {
+    @Bean
+    public MyService myService() {
+        return new MyService();
+    }
+}
+```
+
+### What is the use of `@Bean` annotation?
+
+Used to **declare a bean explicitly** in a `@Configuration` class. It's an alternative to `@Component`-scanned beans.
+
+### What is `@ComponentScan` used for?
+
+It tells Spring where to **look for `@Component`-annotated classes** (or its derivatives).
+Without it, Spring won't register beans outside the base package.
+
+```java
+@ComponentScan(basePackages = "com.devportal.services")
+```
+
+### What is the default base package scanned in Spring Boot?
+
+By default, Spring Boot scans the **package of the main class** annotated with `@SpringBootApplication` and all its sub-packages.
+
+### Can we use multiple `@ComponentScan` annotations?
+
+Yes, or use `@ComponentScan` with multiple `basePackages`.
+
+### What is `@Value` annotation in Spring Boot?
+
+Used to **inject values from `application.properties` or `application.yml`**.
+
+```java
+@Value("${server.port}")
+private int port;
+```
+
+### Summary Table
+
+| Annotation               | Purpose                                |
+| ------------------------ | -------------------------------------- |
+| `@Component`             | Generic bean                           |
+| `@Service`               | Business logic layer                   |
+| `@Repository`            | DAO layer with exception translation   |
+| `@Controller`            | MVC controller returning views         |
+| `@RestController`        | REST API controller returning JSON/XML |
+| `@Autowired`             | Injects dependencies                   |
+| `@Qualifier`             | Resolves injection ambiguity           |
+| `@SpringBootApplication` | Entry point, enables config + scanning |
+| `@Configuration`         | Declares bean-producing class          |
+| `@Bean`                  | Declares a bean manually               |
+| `@ComponentScan`         | Specifies packages to scan for beans   |
+| `@Value`                 | Injects config values                  |
+
 ## Let's Connect
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow-blue?logo=linkedin)](https://www.linkedin.com/in/nakul-mitra-microservices-spring-boot-java-postgresql/)
