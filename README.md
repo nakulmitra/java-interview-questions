@@ -3066,6 +3066,177 @@ private int port;
 | `@ComponentScan`         | Specifies packages to scan for beans   |
 | `@Value`                 | Injects config values                  |
 
+## REST API in Spring Boot
+
+### How do we create a RESTful API using Spring Boot?
+
+Use `@RestController` to define REST endpoints and map HTTP verbs using annotations like:
+
+* `@GetMapping`
+* `@PostMapping`
+* `@PutMapping`
+* `@DeleteMapping`
+
+Example:
+
+```java
+@RestController
+@RequestMapping("/api/users")
+public class UserController {
+    @GetMapping("/{id}")
+    public ResponseEntity<User> getUser(@PathVariable Long id) { ... }
+}
+```
+
+### How would we design an API to fetch paginated user data?
+
+Use `Pageable` from Spring Data:
+
+```java
+@GetMapping
+public Page<User> getUsers(Pageable pageable) {
+    return userRepository.findAll(pageable);
+}
+```
+
+Client request:
+`GET /api/users?page=0&size=10&sort=name,asc`
+
+### How do we handle exceptions in a REST API globally?
+
+Use `@ControllerAdvice` with `@ExceptionHandler`:
+
+```java
+@ControllerAdvice
+public class GlobalExceptionHandler {
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(...));
+    }
+}
+```
+
+### How do we return proper HTTP status codes in Spring Boot?
+
+Use `ResponseEntity`:
+
+```java
+return new ResponseEntity<>(user, HttpStatus.CREATED);
+```
+
+Or use shortcut:
+
+```java
+return ResponseEntity.ok(user); // 200
+```
+
+### How do we validate incoming request payloads?
+
+Use **Java Bean Validation** with annotations like `@NotNull`, `@Size`, and `@Email`. Then use `@Valid` in controller:
+
+```java
+@PostMapping
+public ResponseEntity<User> createUser(@Valid @RequestBody UserDto user) { ... }
+```
+
+### How would we design an API to partially update a resource?
+
+Use `@PatchMapping` for **partial updates**:
+
+```java
+@PatchMapping("/{id}")
+public ResponseEntity<User> updatePartially(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+    // Apply changes dynamically
+}
+```
+
+Or use DTO + `ModelMapper` / manual mapping.
+
+### How do we version our APIs in Spring Boot?
+
+Options:
+
+1. **URI versioning**
+   `@RequestMapping("/api/v1/users")`
+
+2. **Header versioning**
+   `@RequestMapping(headers = "X-API-VERSION=1")`
+
+3. **Content negotiation** (via `Accept` header)
+
+### How do we secure a REST API?
+
+Use Spring Security:
+
+* JWT for stateless token-based authentication
+* Basic Auth for internal APIs
+* Role-based access using `@PreAuthorize`, `@Secured`
+
+Example:
+
+```java
+@PreAuthorize("hasRole('ADMIN')")
+@GetMapping("/admin")
+public String adminData() { ... }
+```
+
+### How do we handle file uploads in REST API?
+
+Use `MultipartFile`:
+
+```java
+@PostMapping("/upload")
+public ResponseEntity<?> uploadFile(@RequestParam("file") MultipartFile file) {
+    // Save file
+}
+```
+
+### How do we design an API for searching users by multiple optional filters?
+
+Accept query parameters:
+
+```java
+@GetMapping
+public List<User> searchUsers(
+    @RequestParam Optional<String> name,
+    @RequestParam Optional<Integer> age
+) {
+    return userService.search(name, age);
+}
+```
+
+Or use **Specification API** or **QueryDSL** for dynamic criteria.
+
+### How would we prevent over-fetching and under-fetching of data in APIs?
+
+Use:
+
+* **DTOs** instead of entities
+* **Projections** in Spring Data
+* **GraphQL** if highly customizable fields are needed
+
+### What are idempotent operations in REST APIs?
+
+Idempotent methods return the **same result no matter how many times they are called**:
+
+* `GET`, `PUT`, `DELETE` are idempotent
+* `POST` is **not** (creates new resource)
+
+### How do we log requests/responses in Spring Boot for debugging?
+
+* Use `OncePerRequestFilter` for custom logging
+* Use tools like **Spring Cloud Sleuth**, **Actuator**, or logback configuration
+* Or enable HTTP logging in application config
+
+### How can we improve the performance of a high-load API?
+
+* Use caching with `@Cacheable`
+* Paginate results
+* Use DTOs instead of full entities
+* Avoid N+1 queries (use `@EntityGraph`, `JOIN FETCH`)
+* Enable GZIP compression
+* Rate limit using Redis / bucket4j
+
 ## Let's Connect
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow-blue?logo=linkedin)](https://www.linkedin.com/in/nakul-mitra-microservices-spring-boot-java-postgresql/)
