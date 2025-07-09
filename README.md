@@ -3237,6 +3237,155 @@ Idempotent methods return the **same result no matter how many times they are ca
 * Enable GZIP compression
 * Rate limit using Redis / bucket4j
 
+## Exception Handling in Spring
+
+### How does Spring handle exceptions by default in a REST API?
+
+By default, Spring returns an HTML error page (Whitelabel Error Page). When using `@RestController`, Spring Boot auto-configures a `BasicErrorController` to return structured JSON error responses if `spring-boot-starter-web` is on the classpath.
+
+### What is `@ControllerAdvice` in Spring?
+
+`@ControllerAdvice` is a **global exception handler** that can:
+
+* Handle exceptions thrown by **any controller**
+* Bind global model attributes
+* Provide centralized exception handling logic
+
+### How do we create a global exception handler in Spring Boot?
+
+```java
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex) {
+        ErrorResponse error = new ErrorResponse("NOT_FOUND", ex.getMessage());
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+}
+```
+
+### What is the purpose of `@ExceptionHandler`?
+
+`@ExceptionHandler` is used to **handle specific exception types** and return a custom response.
+
+* Can be used in controller or in a `@ControllerAdvice` class
+* We can customize HTTP status, headers, and body
+
+### What if multiple `@ExceptionHandler`s match an exception?
+
+Spring picks the **most specific exception handler**. For example, if a handler for `NullPointerException` and a handler for `Exception` exist, Spring will use the one for `NullPointerException`.
+
+### How can we customize the response body of an error?
+
+By returning a custom DTO from our handler method:
+
+```java
+public class ErrorResponse {
+    private String error;
+    private String message;
+    private LocalDateTime timestamp;
+    // constructors, getters, setters
+}
+```
+
+### What is `ResponseStatusException` and how is it used?
+
+Introduced in Spring 5, `ResponseStatusException` is a runtime exception that allows us to specify the HTTP status and message directly:
+
+```java
+throw new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found");
+```
+
+Or use its subclass:
+
+```java
+@GetMapping("/{id}")
+public User getUser(@PathVariable Long id) {
+    return userRepository.findById(id)
+           .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+}
+```
+
+### What does `@ResponseStatus` do in exception handling?
+
+It lets us bind an exception class to a specific HTTP status:
+
+```java
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class ResourceNotFoundException extends RuntimeException { }
+```
+
+No need to handle it manually; Spring will automatically return a 404 response.
+
+### How do we handle validation errors from `@Valid` requests?
+
+Use `MethodArgumentNotValidException` in `@ControllerAdvice`:
+
+```java
+@ExceptionHandler(MethodArgumentNotValidException.class)
+public ResponseEntity<?> handleValidationErrors(MethodArgumentNotValidException ex) {
+    Map<String, String> errors = new HashMap<>();
+    ex.getBindingResult().getFieldErrors().forEach(error ->
+        errors.put(error.getField(), error.getDefaultMessage())
+    );
+    return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+}
+```
+
+### Can we handle exceptions differently for different controllers?
+
+Yes. We can scope `@ControllerAdvice` to a specific base package, annotation, or controller class:
+
+```java
+@ControllerAdvice(basePackages = "com.devportal.api")
+```
+
+### How do we return different HTTP status codes for different exceptions?
+
+Use `ResponseEntity` in each handler method to control status:
+
+```java
+return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+```
+
+Or annotate custom exceptions with `@ResponseStatus`.
+
+### How does exception handling differ between `@RestController` and `@Controller`?
+
+| Feature              | `@Controller`                          | `@RestController` |
+| -------------------- | -------------------------------------- | ----------------- |
+| Return type          | View (HTML/jsp)                        | JSON/XML          |
+| Default error result | Whitelabel HTML page                   | JSON error object |
+| Common handling      | Use `@ControllerAdvice` for both types |                   |
+
+### How do we avoid exposing internal stack traces to clients?
+
+* Do not return `Exception.getMessage()` directly.
+* Use custom error DTOs.
+* Filter stack traces in production using `application.properties`:
+
+```properties
+server.error.include-stacktrace=never
+```
+
+### Can we handle multiple exception types in a single method?
+
+Yes:
+
+```java
+@ExceptionHandler({IOException.class, SQLException.class})
+public ResponseEntity<?> handleIOAndSQL(Exception ex) {
+    return new ResponseEntity<>(new ErrorResponse("Error", ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+}
+```
+
+### What is `ErrorController` in Spring Boot?
+
+`ErrorController` allows us to **customize the default error response** for `/error` endpoint.
+
+We can override it to customize how errors are returned globally.
+
 ## Let's Connect
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow-blue?logo=linkedin)](https://www.linkedin.com/in/nakul-mitra-microservices-spring-boot-java-postgresql/)
