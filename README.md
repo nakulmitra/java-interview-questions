@@ -3386,6 +3386,142 @@ public ResponseEntity<?> handleIOAndSQL(Exception ex) {
 
 We can override it to customize how errors are returned globally.
 
+## Spring Data JPA Basics
+
+### What is Spring Data JPA?
+
+Spring Data JPA is a part of the **Spring Data** project that provides **abstractions over JPA**. It reduces boilerplate code and allows easy data access through **repositories**.
+
+### What is the purpose of `JpaRepository`?
+
+`JpaRepository<T, ID>` is a Spring Data interface that provides **CRUD + paging + sorting** functionality.
+It extends:
+
+* `CrudRepository`
+* `PagingAndSortingRepository`
+
+### What are the main repository interfaces in Spring Data JPA?
+
+| Interface                    | Description                 |
+| ---------------------------- | --------------------------- |
+| `CrudRepository`             | Basic CRUD operations       |
+| `PagingAndSortingRepository` | Adds pagination and sorting |
+| `JpaRepository`              | Adds JPA-specific methods   |
+
+### How do we define a Spring Data JPA repository?
+
+```java
+public interface UserRepository extends JpaRepository<User, Long> {
+}
+```
+
+Spring auto-generates the implementation at runtime.
+
+### How does Spring Data JPA generate queries from method names?
+
+Spring parses the method name and automatically constructs the corresponding SQL/JPQL query.
+
+Example:
+
+```java
+List<User> findByEmail(String email);
+List<User> findByAgeGreaterThan(int age);
+List<User> findByNameAndStatus(String name, String status);
+```
+
+### What is the naming convention for query derivation in Spring Data JPA?
+
+* `findBy`
+* `readBy`
+* `getBy`
+
+Followed by field names with logical keywords:
+`And`, `Or`, `GreaterThan`, `Like`, `In`, etc.
+
+### What if the derived query method name becomes too complex?
+
+Use:
+
+* `@Query` annotation to write custom JPQL/native queries
+* Specification/Criteria API for dynamic queries
+
+Example:
+
+```java
+@Query("SELECT u FROM User u WHERE u.email = ?1")
+User findByEmailCustom(String email);
+```
+
+### How do we execute native SQL in Spring Data JPA?
+
+```java
+@Query(value = "SELECT * FROM users WHERE email = ?1", nativeQuery = true)
+User findByEmailNative(String email);
+```
+
+### What is the difference between `@Query` and derived query methods?
+
+| Aspect      | Derived Method                       | `@Query` Annotation        |
+| ----------- | ------------------------------------ | -------------------------- |
+| Simplicity  | Good for simple queries              | Better for complex queries |
+| Flexibility | Limited to naming conventions        | Full JPQL/native control   |
+| Readability | Becomes unreadable for complex logic | Very readable              |
+
+### How do we perform pagination in Spring Data JPA?
+
+```java
+Page<User> findByStatus(String status, Pageable pageable);
+```
+
+Call:
+
+```java
+PageRequest.of(0, 10, Sort.by("name").ascending());
+```
+
+### What is the use of `@Modifying` and `@Query` together?
+
+Used when performing update/delete operations via custom queries:
+
+```java
+@Modifying
+@Query("UPDATE User u SET u.active = false WHERE u.lastLogin < :date")
+int deactivateOldUsers(@Param("date") LocalDate date);
+```
+
+Also annotate method with `@Transactional` if needed.
+
+### How do we enable Spring Data JPA repositories?
+
+```java
+@SpringBootApplication
+@EnableJpaRepositories(basePackages = "com.devportal.repository")
+```
+
+Or simply keep repositories under the main package (auto-scanned).
+
+### How do we fetch only selected fields from an entity?
+
+Use **projections**:
+
+```java
+public interface UserSummary {
+    String getName();
+    String getEmail();
+}
+
+List<UserSummary> findByActiveTrue();
+```
+
+### What is the default transaction behavior in Spring Data JPA?
+
+Spring Data methods are **read-only transactions by default**. For write operations, Spring creates transactions as needed.
+
+### What is the difference between `findAll()` and `findAll(Pageable pageable)`?
+
+* `findAll()` - Returns all records
+* `findAll(Pageable)` - Returns paginated data (as `Page<T>`)
+
 ## Let's Connect
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow-blue?logo=linkedin)](https://www.linkedin.com/in/nakul-mitra-microservices-spring-boot-java-postgresql/)
