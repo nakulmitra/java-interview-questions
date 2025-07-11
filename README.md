@@ -3522,6 +3522,160 @@ Spring Data methods are **read-only transactions by default**. For write operati
 * `findAll()` - Returns all records
 * `findAll(Pageable)` - Returns paginated data (as `Page<T>`)
 
+## Performance Optimization in Java
+
+### What are the performance trade-offs between Java Streams and traditional for-loops?
+
+| Aspect        | Streams                              | For-Loops                                 |
+| ------------- | ------------------------------------ | ----------------------------------------- |
+| Readability   | More concise and declarative         | More verbose but explicit                 |
+| Performance   | Slightly slower for small datasets   | Usually faster, especially for primitives |
+| Laziness      | Supports lazy evaluation             | Eagerly executes                          |
+| Parallelism   | Easy to parallelize (`.parallel()`)  | Manual threading required                 |
+| Debuggability | Harder to debug (no named variables) | Easier to debug                           |
+
+> Use **streams** for readability and maintainability.
+> Use **loops** when **performance is critical** or when working with **primitives**.
+
+### What is lazy evaluation in Java Streams?
+
+Lazy evaluation means intermediate operations (like `map`, `filter`) are **not executed until a terminal operation** (like `collect`, `forEach`) is triggered.
+
+Example:
+
+```java
+Stream<String> stream = list.stream().map(s -> {
+    System.out.println("Mapping: " + s);
+    return s.toUpperCase();
+});
+// No output yet because no terminal operation has been called.
+```
+
+### How does lazy evaluation help with performance?
+
+* Avoids unnecessary computations.
+* Supports **short-circuiting** (e.g., `.findFirst()`, `.anyMatch()`).
+* Enables **chaining of operations** without immediate memory usage.
+
+Example:
+
+```java
+list.stream()
+    .filter(s -> s.startsWith("A"))
+    .map(String::toLowerCase)
+    .findFirst(); // Stops at first match
+```
+
+### When should we prefer `for-loop` over `Stream` in Java?
+
+Prefer **loops** when:
+
+* We need **index-based iteration**.
+* We're working with **primitives** and want to avoid boxing overhead.
+* The code is part of a **performance-critical path** (e.g., high-frequency batch processing).
+* We require **side-effects** and complex branching.
+
+### What is eager evaluation in Java? How is it different from lazy evaluation?
+
+Eager evaluation computes results **immediately** as the code runs.
+
+Example:
+
+```java
+List<String> result = new ArrayList<>();
+for (String s : list) {
+    result.add(s.toUpperCase()); // Eagerly executed
+}
+```
+
+Unlike streams, all operations happen **immediately** and **in memory**, possibly leading to higher memory use.
+
+### How can `parallelStream()` impact performance?
+
+**Pros:**
+
+* Automatically splits processing across cores
+* Can boost performance for **CPU-intensive** operations on **large datasets**
+
+**Cons:**
+
+* Overhead for small data sizes
+* Not thread-safe for shared resources
+* Unpredictable order unless `.forEachOrdered()` is used
+
+> Use `parallelStream()` only when:
+>
+> * Dataset is large
+> * Computation is CPU-bound
+> * There are no shared mutable states
+
+### How does boxing affect performance in Streams?
+
+Streams of primitives (e.g., `IntStream`, `DoubleStream`) avoid **boxing/unboxing overhead**.
+
+Example:
+
+```java
+IntStream.range(0, 1000).sum(); // No boxing
+```
+
+Whereas this involves boxing:
+
+```java
+List<Integer> list = Arrays.asList(1, 2, 3);
+list.stream().reduce(0, Integer::sum); // Slower
+```
+
+### How can we optimize memory usage in Stream pipelines?
+
+* Avoid collecting intermediate results (`.collect()` inside chains).
+* Use **lazy filtering** (`filter()` before `map()`).
+* Avoid unnecessary object creation.
+
+### What is short-circuiting in streams?
+
+Stream operations like `.anyMatch()`, `.findFirst()` terminate early **once a result is found**, improving performance:
+
+```java
+Stream.of("a", "b", "c").anyMatch(s -> s.equals("b")); // Stops at "b"
+```
+
+### How can misuse of streams lead to performance problems?
+
+* Using `.collect()` repeatedly in pipelines.
+* Using `parallelStream()` with small collections.
+* Performing blocking I/O inside a stream (e.g., DB calls).
+* Using streams in nested loops (`O(n²)` complexity).
+
+### What are alternatives to `stream().filter(...).findFirst()` for better performance?
+
+Use **indexed loops** when order matters and short-circuiting is needed:
+
+```java
+for (String s : list) {
+    if (s.startsWith("A")) {
+        return s;
+    }
+}
+```
+
+This avoids creating an entire pipeline and object allocations.
+
+### When is `Collectors.toMap()` dangerous in terms of performance?
+
+* When keys have **duplicate values** - leads to `IllegalStateException`
+* When collecting large streams into a map - leads to **high memory usage**
+
+> Use a merge function to handle duplicates:
+
+```java
+.collect(Collectors.toMap(
+    User::getId,
+    Function.identity(),
+    (u1, u2) -> u1 // Resolve duplicate keys
+));
+```
+
 ## Let's Connect
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow-blue?logo=linkedin)](https://www.linkedin.com/in/nakul-mitra-microservices-spring-boot-java-postgresql/)
