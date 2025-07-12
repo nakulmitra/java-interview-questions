@@ -1065,6 +1065,131 @@ JIT compiles frequently used bytecode to **native machine code at runtime**, imp
 
 Each thread has a **Program Counter (PC)** register that points to the **current instruction** being executed. It is thread-specific and helps support **multi-threading**.
 
+## Garbage Collection in Java
+
+### What is Garbage Collection in Java?
+
+Garbage Collection (GC) is an **automatic memory management process** in Java where the JVM reclaims memory from objects that are **no longer reachable** from any live thread or static reference.
+
+### What are the major Garbage Collectors available in Java 8+?
+
+| Collector                       | Description                                              |
+| ------------------------------- | -------------------------------------------------------- |
+| **Serial GC**                   | Single-threaded, low memory, best for small applications |
+| **Parallel GC**                 | Multi-threaded, throughput-focused                       |
+| **CMS (Concurrent Mark Sweep)** | Low pause time, deprecated in Java 9+                    |
+| **G1 GC (Garbage First)**       | Low pause, splits heap into regions                      |
+| **ZGC & Shenandoah**            | Sub-millisecond pause times, experimental in 8-11        |
+
+### What is the difference between CMS and G1 Garbage Collector?
+
+| Feature           | CMS                         | G1 GC                                |
+| ----------------- | --------------------------- | ------------------------------------ |
+| Pause Time        | Low                         | Predictable, low pause               |
+| Heap Partitioning | Young + Old Gen             | Divided into **equal-sized regions** |
+| Fragmentation     | More prone to fragmentation | Handles fragmentation better         |
+| Collection Phases | Concurrent Mark & Sweep     | Incremental, region-based GC         |
+| Java Version      | Deprecated in Java 14       | Default in Java 9+                   |
+
+### What are the phases of G1 Garbage Collection?
+
+1. Young GC (Evacuates Eden + Survivor regions)
+2. Concurrent Marking (Finds live objects in Old regions)
+3. Remark (Finalize marking)
+4. Cleanup (Reclaims space)
+5. Mixed GC (Young + some Old regions)
+
+### What are the memory areas involved in Java heap?
+
+* **Young Generation**:
+
+  * Eden
+  * Survivor (S0, S1)
+* **Old Generation** (Tenured)
+* **Metaspace** (Class metadata in Java 8+)
+* **Code Cache** (JIT compiled code)
+
+### What causes a memory leak in Java even though there is GC?
+
+* Objects **still referenced** (unintentionally)
+* Static references holding large data
+* Listeners or callbacks not removed
+* ThreadLocal mismanagement
+* Large object retained in cache/map
+
+> GC only reclaims **unreachable** objects. Leaks happen when objects are **unintentionally reachable**.
+
+### What tools do we use to detect memory leaks and GC performance issues?
+
+* **JVisualVM**
+* **JConsole**
+* **Java Flight Recorder (JFR)**
+* **Heap Dump Analyzer (MAT)**
+* **GC logs** (`-Xlog:gc` or `-XX:+PrintGCDetails`)
+
+### What JVM options are commonly used for GC tuning?
+
+```bash
+-XX:+UseG1GC
+-Xms512m -Xmx2048m
+-XX:MaxGCPauseMillis=200
+-XX:+PrintGCDetails
+-XX:+HeapDumpOnOutOfMemoryError
+```
+
+### How does G1 GC achieve low-pause GC?
+
+* Divides the heap into **regions** (not fixed Eden/Old)
+* Performs **incremental garbage collection**
+* Uses **predictive modeling** to avoid long pauses
+* Mixed collections to gradually clean Old generation
+
+### How can we force a full GC in Java?
+
+* Programmatically: `System.gc();` (just a request)
+* JVM options: `-XX:+ExplicitGCInvokesConcurrent`
+* JMX: Trigger via tools like VisualVM or JConsole
+
+> Note: Use `System.gc()` **sparingly** - it may affect performance.
+
+### What is a "stop-the-world" (STW) pause?
+
+It's when the JVM **pauses all application threads** to perform a GC operation. Most collectors (even G1) have some STW phases, like **remark** or **initial mark**.
+
+### What is the role of Metaspace in Java 8+?
+
+Metaspace replaced **PermGen** in Java 8. It stores:
+
+* Class metadata
+* Method information
+
+Metaspace grows **dynamically** and is **not limited by heap size**. Can be tuned with:
+
+```bash
+-XX:MaxMetaspaceSize=256m
+```
+
+### What happens when Java runs out of memory?
+
+We'll get one of the following errors:
+
+* `java.lang.OutOfMemoryError: Java heap space`
+* `java.lang.OutOfMemoryError: Metaspace`
+* `GC overhead limit exceeded`
+
+These indicate that GC could not reclaim enough memory.
+
+### What is GC Overhead Limit Exceeded error?
+
+This occurs when GC is using **>98% of CPU time but freeing <2% of heap**, repeatedly. JVM throws this to avoid infinite GC cycles.
+
+### What is the difference between Minor GC and Major GC?
+
+| GC Type  | Area Affected    | Frequency     | Pause Time |
+| -------- | ---------------- | ------------- | ---------- |
+| Minor GC | Young Generation | Frequent      | Short      |
+| Major GC | Old Generation   | Less frequent | Longer     |
+
 ## Java Predicate
 
 ### What is a `Predicate` in Java?
