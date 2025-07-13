@@ -3801,6 +3801,170 @@ This avoids creating an entire pipeline and object allocations.
 ));
 ```
 
+## Unit Testing in Java
+
+### What is Unit Testing and why is it important?
+
+Unit testing is the practice of **testing individual units/components** of code (like methods or classes) in isolation to verify correctness.
+It ensures:
+
+* Code correctness
+* Easier debugging
+* Safe refactoring
+* Better documentation
+
+### What is the difference between JUnit and Mockito?
+
+| Tool    | Purpose                                    |
+| ------- | ------------------------------------------ |
+| JUnit   | Test framework for writing unit tests      |
+| Mockito | Mocking framework to simulate dependencies |
+
+JUnit is used for structuring and asserting tests, Mockito is used to **mock external dependencies**.
+
+### How do we write a basic JUnit test case in JUnit 5?
+
+```java
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
+
+class CalculatorTest {
+    @Test
+    void testAddition() {
+        Calculator calc = new Calculator();
+        assertEquals(10, calc.add(5, 5));
+    }
+}
+```
+
+### What are commonly used annotations in JUnit 5?
+
+| Annotation    | Purpose                    |
+| ------------- | -------------------------- |
+| `@Test`       | Marks a test method        |
+| `@BeforeEach` | Runs before each test      |
+| `@AfterEach`  | Runs after each test       |
+| `@BeforeAll`  | Runs once before all tests |
+| `@AfterAll`   | Runs once after all tests  |
+| `@Disabled`   | Skips a test               |
+
+### What is mocking in unit testing?
+
+Mocking means **replacing real dependencies with fake ones** (mock objects) to isolate the unit of work.
+
+For example, mocking a database repository in a service class test using Mockito.
+
+### How do we mock a dependency using Mockito?
+
+```java
+@ExtendWith(MockitoExtension.class)
+class UserServiceTest {
+
+    @Mock
+    private UserRepository userRepository;
+
+    @InjectMocks
+    private UserService userService;
+
+    @Test
+    void testFindById() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(new User("DevPortal")));
+
+        User user = userService.findById(1L);
+        assertEquals("DevPortal", user.getName());
+    }
+}
+```
+
+### How do we verify a method was called in Mockito?
+
+```java
+verify(userRepository, times(1)).save(any(User.class));
+```
+
+This ensures that the `save()` method was invoked exactly once.
+
+### What is the difference between `@Mock` and `@InjectMocks`?
+
+| Annotation     | Description                             |
+| -------------- | --------------------------------------- |
+| `@Mock`        | Creates a mock instance of a dependency |
+| `@InjectMocks` | Injects mocks into the class under test |
+
+Example: Mocks `UserRepository`, and injects into `UserService`.
+
+### What is the difference between a stub and a mock?
+
+| Concept | Stub                     | Mock                                  |
+| ------- | ------------------------ | ------------------------------------- |
+| Use     | Provides canned response | Verifies behavior + provides response |
+| Focus   | Data                     | Interaction                           |
+
+Mockito mocks are capable of **both stubbing and verification**.
+
+### What is `@ExtendWith(MockitoExtension.class)` used for?
+
+It enables **Mockito support** in JUnit 5, auto-wires `@Mock` and `@InjectMocks` annotated fields.
+
+### What is the purpose of `any()`, `eq()`, and `when()` in Mockito?
+
+* `any()` - Matches any value of given type.
+* `eq("value")` - Matches a specific value.
+* `when(...).thenReturn(...)` - Defines behavior of a mock method.
+
+Example:
+
+```java
+when(repo.findByName(anyString())).thenReturn(user);
+```
+
+### How do we handle exceptions in unit tests?
+
+```java
+@Test
+void shouldThrowException() {
+    assertThrows(IllegalArgumentException.class, () -> {
+        myService.doSomething(null);
+    });
+}
+```
+
+### What is the difference between unit tests and integration tests?
+
+| Type       | Unit Test              | Integration Test                                 |
+| ---------- | ---------------------- | ------------------------------------------------ |
+| Scope      | Tests one class/method | Tests multiple components (e.g. controller + DB) |
+| Speed      | Fast (in-memory)       | Slower (external dependencies involved)          |
+| Frameworks | JUnit + Mockito        | SpringBootTest, Testcontainers, etc.             |
+
+### How do we test private methods?
+
+* Refactor code so that logic is in public methods
+* If really needed, use reflection or expose via package-private
+
+> Best Practice: Don't test private methods directly. Test through public interfaces.
+
+### What are parameterized tests in JUnit?
+
+Used to run the same test with different inputs:
+
+```java
+@ParameterizedTest
+@ValueSource(strings = {"dev", "test", "prod"})
+void testEnv(String env) {
+    assertNotNull(env);
+}
+```
+
+### Real-World Mocking Scenarios
+
+| Scenario                   | What to Mock                  |
+| -------------------------- | ----------------------------- |
+| Testing service without DB | Mock the repository           |
+| Testing REST controller    | Mock the service layer        |
+| Simulating exceptions      | `when(...).thenThrow(...)`    |
+| Testing retry logic        | Mock failure/success sequence |
+
 ## Let's Connect
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow-blue?logo=linkedin)](https://www.linkedin.com/in/nakul-mitra-microservices-spring-boot-java-postgresql/)
